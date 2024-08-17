@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -17,6 +18,7 @@ import (
 type App struct {
 	router *chi.Mux
 	client *mongo.Client
+	db     *mongo.Database
 }
 
 func (a *App) InitServer() error {
@@ -43,9 +45,14 @@ func (a *App) InitServer() error {
 		return err
 	}
 	fmt.Println("Successfully connected to MongoDB!")
+	a.db = a.client.Database("chat_box")
+	a.dbInstance()
 
 	a.router = chi.NewRouter()
+	a.router.Use(middleware.Logger)
+	a.router.Post("/register", register)
 	a.router.Post("/login", login)
+	a.router.Get("/user/{id}", getUserDataById)
 	return nil
 }
 
