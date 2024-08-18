@@ -41,9 +41,18 @@ func register(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+
+	token, err := generateJWT(res.InsertedID.(primitive.ObjectID).Hex())
+	if err != nil {
+		respondJSON(w, http.StatusInternalServerError, map[string]string{
+			"message": fmt.Sprintf("Could not generate the JWT: %v", err),
+		})
+		return
+	}
 	respondJSON(w, http.StatusOK, map[string]interface{}{
 		"message": "User added successfully",
 		"user_id": res.InsertedID,
+		"token":   token,
 	})
 }
 
@@ -60,9 +69,17 @@ func login(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	token, err := generateJWT(dbUser.Id)
+	if err != nil {
+		respondJSON(w, http.StatusInternalServerError, map[string]string{
+			"message": fmt.Sprintf("Could not generate the JWT: %v", err),
+		})
+		return
+	}
 	respondJSON(w, http.StatusOK, map[string]interface{}{
 		"message": "User logged successfully",
 		"user_id": dbUser.Id,
+		"token":   token,
 	})
 }
 
@@ -86,5 +103,9 @@ func getUserDataById(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, map[string]interface{}{
 		"message":   "User data retrieved",
 		"user_data": dbUser,
+		"claims": map[string]any{
+			"subject":    r.Context().Value(ctxKey(userId)).(string),
+			"expires_at": r.Context().Value(ctxKey(expiresAt)).(string),
+		},
 	})
 }

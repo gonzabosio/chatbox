@@ -7,8 +7,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -38,7 +39,7 @@ func (a *App) InitServer() error {
 		return fmt.Errorf("connection to MongoDB canceled")
 	}
 	if err != nil {
-		return err
+		return fmt.Errorf("connection to MongoDB failed | %v", err)
 	}
 	// Confirm successful connection sending a ping
 	if err := a.client.Database("chat_box").RunCommand(context.TODO(), bson.D{{Key: "ping", Value: 1}}).Err(); err != nil {
@@ -49,10 +50,16 @@ func (a *App) InitServer() error {
 	a.dbInstance()
 
 	a.router = chi.NewRouter()
+
 	a.router.Use(middleware.Logger)
-	a.router.Post("/register", register)
-	a.router.Post("/login", login)
-	a.router.Get("/user/{id}", getUserDataById)
+	a.router.Group(func(r chi.Router) {
+		r.Post("/register", register)
+		r.Post("/login", login)
+	})
+	a.router.Group(func(r chi.Router) {
+		r.Use(authMiddleware)
+		r.Get("/user/{id}", getUserDataById)
+	})
 	return nil
 }
 
@@ -66,4 +73,19 @@ func (a *App) ShutdownConn() {
 	} else {
 		fmt.Println("MongoDB Disconnected")
 	}
+}
+
+func generateJWT(id string) (string, error) {
+	// Set custom claims and create token
+	claims := jwt.RegisteredClaims{
+		Subject:   id,
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Second * 60)),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// Encode token
+	t, err := token.SignedString([]byte(os.Getenv("JWT_KEY")))
+	if err != nil {
+		return "", err
+	}
+	return t, nil
 }
