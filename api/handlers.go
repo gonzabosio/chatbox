@@ -1,51 +1,50 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/gonzabosio/chat-box/repo"
 	"github.com/gonzabosio/chat-box/storage"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var db *mongo.Database
+// function to instance service is in common.go
+var ms *repo.MongoDBService
 
-func (a *App) dbInstance() {
-	db = a.db
-}
-
-func respondJSON(w http.ResponseWriter, statusCode int, data interface{}) {
-	w.Header().Set("Content-Type", "application-json")
-	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(data)
-}
-
-func register(w http.ResponseWriter, r *http.Request) {
+func signUp(w http.ResponseWriter, r *http.Request) {
 	var user storage.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		respondJSON(w, http.StatusBadRequest, map[string]string{
-			"message": fmt.Sprintf("Bad request to register user: %v", err),
+			"message": "Bad request to register user",
+			"error":   err.Error(),
 		})
 		return
 	}
-	coll := db.Collection("users")
-	res, err := coll.InsertOne(context.TODO(), user)
+	hashedPassw, err := hashPassword(user.Password)
 	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{
-			"message": fmt.Sprintf("Could not post the user in the database: %v", err),
+		respondJSON(w, http.StatusBadRequest, map[string]string{
+			"message": "Could not hash password",
+			"error":   err.Error(),
 		})
 		return
 	}
-
+	user.Password = hashedPassw
+	res, err := ms.RegisterUser(&user)
+	if err != nil {
+		respondJSON(w, http.StatusBadRequest, map[string]string{
+			"message": "Could not register the user in the database",
+			"error":   err.Error(),
+		})
+		return
+	}
 	token, err := generateJWT(res.InsertedID.(primitive.ObjectID).Hex())
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{
-			"message": fmt.Sprintf("Could not generate the JWT: %v", err),
+			"message": "Could not generate the JWT",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -56,23 +55,28 @@ func register(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func login(w http.ResponseWriter, r *http.Request) {
-	username := r.FormValue("username")
-	password := r.FormValue("password")
-	filter := bson.D{{Key: "username", Value: username}, {Key: "password", Value: password}}
-	dbUser := new(storage.User)
-	coll := db.Collection("users")
-	err := coll.FindOne(context.TODO(), filter).Decode(&dbUser)
+func signIn(w http.ResponseWriter, r *http.Request) {
+	var user storage.User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		respondJSON(w, http.StatusBadRequest, map[string]string{
+			"message": "Bad request to login user",
+			"error":   err.Error(),
+		})
+		return
+	}
+	dbUser, err := ms.LoginUser(&user)
 	if err != nil {
 		respondJSON(w, http.StatusUnauthorized, map[string]string{
-			"message": fmt.Sprintf("Invalid or non-existent user | %v", err),
+			"message": "Invalid or non-existent user",
+			"error":   err.Error(),
 		})
 		return
 	}
 	token, err := generateJWT(dbUser.Id)
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{
-			"message": fmt.Sprintf("Could not generate the JWT: %v", err),
+			"message": "Could not generate the JWT",
+			"error":   err.Error(),
 		})
 		return
 	}
@@ -89,14 +93,15 @@ func getUserDataById(w http.ResponseWriter, r *http.Request) {
 	id, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{
-			"message": "could not convert id to ObjectId",
+			"message": "Could not convert id to ObjectId",
 		})
+		return
 	}
 	filter := bson.D{{Key: "_id", Value: id}}
-	coll := db.Collection("users")
-	if err := coll.FindOne(context.TODO(), filter).Decode(&dbUser); err != nil {
+	if err := ms.GetUserById(dbUser, filter); err != nil {
 		respondJSON(w, http.StatusOK, map[string]string{
-			"message": fmt.Sprintf("Invalid or non-existent %v", err),
+			"message": "Invalid or non-existent user id",
+			"error":   err.Error(),
 		})
 		return
 	}
