@@ -10,7 +10,6 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
-	"github.com/gonzabosio/chat-box/repo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -43,34 +42,36 @@ func (a *App) InitServer() error {
 	}
 	fmt.Println("Successfully connected to MongoDB!")
 
-	ms = &repo.MongoDBService{DB: a.client.Database("chat_box")}
-
-	a.routing()
+	handler := NewHandler(a, os.Getenv("JWT_KEY"))
+	a.routing(handler)
 
 	return nil
 }
 
-func (a *App) routing() {
+func (a *App) routing(h *handler) {
 	a.router = chi.NewRouter()
 	a.router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"https://*", "http://*"},
-		AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: false,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
+		AllowedOrigins: []string{"https://*", "http://*"},
+		AllowedMethods: []string{"GET", "POST", "PATCH", "DELETE"},
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders: []string{"Link"},
+		MaxAge:         300,
 	}))
+	//Public
 	a.router.Use(middleware.Logger)
-	a.router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello World!"))
-	})
 	a.router.Group(func(r chi.Router) {
-		r.Post("/signup", signUp)
-		r.Post("/signin", signIn)
+		r.Post("/signup", h.signUp)
+		r.Post("/signin", h.signIn)
+		a.router.Route("/token", func(r chi.Router) {
+			r.Post("/renew", h.renewAccessToken)
+			r.Post("/revoke/{id}", h.revokeSession)
+		})
 	})
+	//Private
 	a.router.Group(func(r chi.Router) {
-		r.Use(authMiddleware)
-		r.Get("/user/{id}", getUserDataById)
+		r.Use(h.authMiddleware)
+		r.Get("/user/{id}", h.getUserDataById)
+		r.Post("/logout/{id}", h.logout)
 	})
 }
 

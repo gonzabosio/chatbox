@@ -7,16 +7,12 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
-	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/gonzabosio/chat-box/storage"
+	"github.com/gonzabosio/chat-box/models"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // HANDLERS RESOURCES
@@ -27,31 +23,18 @@ func respondJSON(w http.ResponseWriter, statusCode int, data interface{}) {
 	json.NewEncoder(w).Encode(data)
 }
 
-func hashPassword(password string) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
+func checkLoginValues(username, password string) error {
+	if username == "" || password == "" {
+		return fmt.Errorf("username and password must not be empty")
+	} else if len([]byte(username)) > 12 {
+		return fmt.Errorf("username must contain 12 characters or fewer")
+	} else if len([]byte(password)) > 20 {
+		return fmt.Errorf("password must contain 20 characters or fewer")
 	}
-	return string(hash), nil
+	return nil
 }
 
-// JWT generation used in signUp and signIn handlers
-func generateJWT(id string) (string, error) {
-	// Set custom claims and create token
-	claims := jwt.RegisteredClaims{
-		Subject:   id,
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	// Encode token
-	t, err := token.SignedString([]byte(os.Getenv("JWT_KEY")))
-	if err != nil {
-		return "", err
-	}
-	return t, nil
-}
-
-// TESTING RESOURCES
+// TESTING RESOURCES (func functionNameT() {})
 func executeRequestT(req *http.Request, router *chi.Mux) *httptest.ResponseRecorder {
 	rr := httptest.NewRecorder()
 	router.ServeHTTP(rr, req)
@@ -79,7 +62,7 @@ func connectLocalMongoT(app *App) error {
 	return nil
 }
 
-func buildPostRequestT(body *storage.User, endpoint string) (*http.Request, error) {
+func buildPostRequestT(body *models.User, endpoint string) (*http.Request, error) {
 	bodyReq, err := json.Marshal(body)
 	if err != nil {
 		return nil, err

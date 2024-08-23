@@ -3,20 +3,17 @@ package api
 import (
 	"context"
 	"net/http"
-	"os"
 	"strings"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type ctxKey string
 
 const (
-	userId    = ctxKey("user_id")
+	claimsId  = ctxKey("id")
 	expiresAt = ctxKey("expires_at")
 )
 
-func authMiddleware(next http.Handler) http.Handler {
+func (h *handler) authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
@@ -33,20 +30,17 @@ func authMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		// Parse and validate the token
-		claims := &jwt.RegisteredClaims{}
-		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("JWT_KEY")), nil
-		})
-
-		if err != nil || !token.Valid {
+		claims, err := h.tokenMaker.VerifyToken(tokenStr)
+		if err != nil {
 			respondJSON(w, http.StatusUnauthorized, map[string]string{
-				"message": err.Error(),
+				"message": "Error verifying token",
+				"error":   err.Error(),
 			})
 			return
 		}
 		// Add claims to request context
-		ctx := context.WithValue(r.Context(), userId, claims.Subject)
-		ctx = context.WithValue(ctx, expiresAt, claims.ExpiresAt.Format("Mon Jan _2 15:04:05 2006"))
+		ctx := context.WithValue(r.Context(), claimsId, claims.RegisteredClaims.ID)
+		ctx = context.WithValue(ctx, expiresAt, claims.RegisteredClaims.ExpiresAt.Time.Format("Mon Jan _2 15:04:05 2006"))
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

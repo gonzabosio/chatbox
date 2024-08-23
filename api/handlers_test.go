@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
 	"testing"
 
-	"github.com/gonzabosio/chat-box/repo"
-	"github.com/gonzabosio/chat-box/storage"
+	"github.com/gonzabosio/chat-box/models"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,12 +16,12 @@ func TestSignUp(t *testing.T) {
 	if err := connectLocalMongoT(app); err != nil {
 		t.Fatal(err)
 	}
-	ms = &repo.MongoDBService{DB: app.client.Database("chat_box")}
-	app.routing()
+	handler := NewHandler(app, os.Getenv("JWT_KEY"))
+	app.routing(handler)
 
 	t.Run("Assert equal if user already exists", func(t *testing.T) {
-		body := &storage.User{
-			Username: "StoredUser",
+		body := &models.User{
+			Name:     "StoredUser",
 			Password: "54321",
 		}
 		req, err := buildPostRequestT(body, "/signup")
@@ -39,8 +39,8 @@ func TestSignUp(t *testing.T) {
 		require.Equal(t, "username already exists", bodyResp["error"])
 	})
 	t.Run("Assert equal if user is added successfully", func(t *testing.T) {
-		body := &storage.User{
-			Username: "NewUser",
+		body := &models.User{
+			Name:     "NewUser",
 			Password: "54321",
 		}
 		req, err := buildPostRequestT(body, "/signup")
@@ -65,12 +65,12 @@ func TestSignIn(t *testing.T) {
 	if err := connectLocalMongoT(app); err != nil {
 		t.Fatal(err)
 	}
-	ms = &repo.MongoDBService{DB: app.client.Database("chat_box")}
-	app.routing()
+	handler := NewHandler(app, os.Getenv("JWT_KEY"))
+	app.routing(handler)
 
 	t.Run("Assert equal if invalid user", func(t *testing.T) {
-		body := &storage.User{
-			Username: "InexistentUser",
+		body := &models.User{
+			Name:     "Inexistent",
 			Password: "54321",
 		}
 		req, err := buildPostRequestT(body, "/signin")
@@ -88,8 +88,8 @@ func TestSignIn(t *testing.T) {
 		require.Equal(t, "Invalid or non-existent user", bodyResp["message"])
 	})
 	t.Run("Assert equal if user logged successfully", func(t *testing.T) {
-		body := &storage.User{
-			Username: "StoredUser",
+		body := &models.User{
+			Name:     "StoredUser",
 			Password: "54321",
 		}
 		req, err := buildPostRequestT(body, "/signin")
