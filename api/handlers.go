@@ -58,18 +58,18 @@ func (h *handler) signUp(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	accessToken, accessClaims, err := h.tokenMaker.CreateToken(user.Id, user.Name, 5*time.Minute)
+	accessToken, accessClaims, err := h.tokenMaker.CreateToken(user.Id, user.Name, 15*time.Minute)
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{
-			"message": "Could not generate the JWT",
+			"message": "Could not generate the access JWT",
 			"error":   err.Error(),
 		})
 		return
 	}
-	refreshToken, refreshClaims, err := h.tokenMaker.CreateToken(user.Id, user.Name, 10*time.Minute)
+	refreshToken, refreshClaims, err := h.tokenMaker.CreateToken(user.Id, user.Name, 24*time.Hour)
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{
-			"message": "Could not generate the JWT",
+			"message": "Could not generate the refresh JWT",
 			"error":   err.Error(),
 		})
 		return
@@ -89,6 +89,13 @@ func (h *handler) signUp(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		Expires:  time.Now().Add(24 * time.Hour),
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
 	respondJSON(w, http.StatusOK, map[string]interface{}{
 		"message":       "User added successfully",
 		"session_id":    session.ID,
@@ -130,7 +137,7 @@ func (h *handler) signIn(w http.ResponseWriter, r *http.Request) {
 	accessToken, accessClaims, err := h.tokenMaker.CreateToken(dbUser.Id, dbUser.Name, 15*time.Minute)
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{
-			"message": "Could not generate the JWT",
+			"message": "Could not generate the access JWT",
 			"error":   err.Error(),
 		})
 		return
@@ -138,7 +145,7 @@ func (h *handler) signIn(w http.ResponseWriter, r *http.Request) {
 	refreshToken, refreshClaims, err := h.tokenMaker.CreateToken(dbUser.Id, dbUser.Name, 24*time.Hour)
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{
-			"message": "Could not generate the JWT",
+			"message": "Could not generate the refresh JWT",
 			"error":   err.Error(),
 		})
 		return
@@ -158,6 +165,13 @@ func (h *handler) signIn(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		Expires:  time.Now().Add(24 * time.Hour),
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
 	respondJSON(w, http.StatusOK, map[string]interface{}{
 		"message":       "User logged successfully",
 		"session_id":    session.ID,
@@ -173,7 +187,7 @@ func (h *handler) signIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) logout(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "sessionId")
 	if id == "" {
 		respondJSON(w, http.StatusBadRequest, map[string]string{"message": "Missing session id"})
 		return
@@ -186,6 +200,7 @@ func (h *handler) logout(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	respondJSON(w, http.StatusOK, map[string]string{"message": "User logged out"})
 }
 
 type RenewAccessTokenReq struct {
@@ -193,17 +208,17 @@ type RenewAccessTokenReq struct {
 }
 
 func (h *handler) renewAccessToken(w http.ResponseWriter, r *http.Request) {
-	var req RenewAccessTokenReq
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		respondJSON(w, http.StatusBadRequest, map[string]string{
-			"message": "Bad request to renew access token",
-			"error":   err.Error(),
-		})
+	refreshToken, err := r.Cookie("refresh_token")
+	if err != nil {
+		respondJSON(w, http.StatusUnauthorized, map[string]string{"message": "refresh token is not in cookies"})
 		return
 	}
-	refreshClaims, err := h.tokenMaker.VerifyToken(req.RefreshToken)
+	refreshClaims, err := h.tokenMaker.VerifyToken(refreshToken.Value)
 	if err != nil {
-		respondJSON(w, http.StatusUnauthorized, map[string]string{"message": "Error verifying token"})
+		respondJSON(w, http.StatusUnauthorized, map[string]string{
+			"message": "Error verifying token",
+			"error":   err.Error(),
+		})
 		return
 	}
 	session, err := h.service.GetSessions(refreshClaims.RegisteredClaims.ID)
@@ -235,7 +250,7 @@ func (h *handler) renewAccessToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) revokeSession(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+	id := chi.URLParam(r, "sessionId")
 	if id == "" {
 		respondJSON(w, http.StatusBadRequest, map[string]string{"message": "Missing session id"})
 		return

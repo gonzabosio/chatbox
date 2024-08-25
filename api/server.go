@@ -51,27 +51,28 @@ func (a *App) InitServer() error {
 func (a *App) routing(h *handler) {
 	a.router = chi.NewRouter()
 	a.router.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"https://*", "http://*"},
-		AllowedMethods: []string{"GET", "POST", "PATCH", "DELETE"},
-		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders: []string{"Link"},
-		MaxAge:         300,
+		AllowedOrigins:   []string{"http://localhost:8100"},
+		AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		MaxAge:           300,
+		AllowCredentials: true,
 	}))
 	//Public
 	a.router.Use(middleware.Logger)
 	a.router.Group(func(r chi.Router) {
 		r.Post("/signup", h.signUp)
 		r.Post("/signin", h.signIn)
+		r.Post("/logout/{sessionId}", h.logout)
 		a.router.Route("/token", func(r chi.Router) {
 			r.Post("/renew", h.renewAccessToken)
-			r.Post("/revoke/{id}", h.revokeSession)
+			r.Post("/revoke/{sessionId}", h.revokeSession)
 		})
 	})
 	//Private
 	a.router.Group(func(r chi.Router) {
 		r.Use(h.authMiddleware)
 		r.Get("/user/{id}", h.getUserDataById)
-		r.Post("/logout/{id}", h.logout)
 	})
 }
 
