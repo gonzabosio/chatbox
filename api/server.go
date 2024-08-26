@@ -63,7 +63,7 @@ func (a *App) routing(h *handler) {
 	a.router.Group(func(r chi.Router) {
 		r.Post("/signup", h.signUp)
 		r.Post("/signin", h.signIn)
-		r.Post("/logout/{sessionId}", h.logout)
+		r.Delete("/logout/{sessionId}", h.logout)
 		a.router.Route("/token", func(r chi.Router) {
 			r.Post("/renew", h.renewAccessToken)
 			r.Post("/revoke/{sessionId}", h.revokeSession)
@@ -72,7 +72,18 @@ func (a *App) routing(h *handler) {
 	//Private
 	a.router.Group(func(r chi.Router) {
 		r.Use(h.authMiddleware)
-		r.Get("/user/{id}", h.getUserDataById)
+		r.Route("/user", func(r chi.Router) {
+			r.Get("/{id}", h.getUserDataById)
+		})
+		r.Route("/chat", func(r chi.Router) {
+			r.Get("/load/{user-id}", h.loadChats)
+			r.Post("/add", h.addChat)
+			r.Delete("/delete/{chat-id}", h.deleteChat)
+			r.Get("/load-messages/{chat-id}", h.loadMessages)
+			r.Post("/send-message", h.sendMessage)
+			r.Patch("/edit-message", h.editMessage)
+			r.Delete("/delete-message/{msg-id}", h.deleteMessage)
+		})
 	})
 }
 

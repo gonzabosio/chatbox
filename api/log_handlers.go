@@ -58,7 +58,7 @@ func (h *handler) signUp(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	accessToken, accessClaims, err := h.tokenMaker.CreateToken(user.Id, user.Name, 15*time.Minute)
+	accessToken, accessClaims, err := h.tokenMaker.CreateToken(user.ID, user.Name, 15*time.Minute)
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{
 			"message": "Could not generate the access JWT",
@@ -66,7 +66,7 @@ func (h *handler) signUp(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	refreshToken, refreshClaims, err := h.tokenMaker.CreateToken(user.Id, user.Name, 24*time.Hour)
+	refreshToken, refreshClaims, err := h.tokenMaker.CreateToken(user.ID, user.Name, 24*time.Hour)
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{
 			"message": "Could not generate the refresh JWT",
@@ -134,7 +134,7 @@ func (h *handler) signIn(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	accessToken, accessClaims, err := h.tokenMaker.CreateToken(dbUser.Id, dbUser.Name, 15*time.Minute)
+	accessToken, accessClaims, err := h.tokenMaker.CreateToken(dbUser.ID, dbUser.Name, 15*time.Minute)
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{
 			"message": "Could not generate the access JWT",
@@ -142,7 +142,7 @@ func (h *handler) signIn(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	refreshToken, refreshClaims, err := h.tokenMaker.CreateToken(dbUser.Id, dbUser.Name, 24*time.Hour)
+	refreshToken, refreshClaims, err := h.tokenMaker.CreateToken(dbUser.ID, dbUser.Name, 24*time.Hour)
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{
 			"message": "Could not generate the refresh JWT",
@@ -180,7 +180,7 @@ func (h *handler) signIn(w http.ResponseWriter, r *http.Request) {
 		"refresh_token": refreshToken,
 		"refresh_exp":   refreshClaims.ExpiresAt.Time,
 		"user": map[string]interface{}{
-			"id":   dbUser.Id,
+			"id":   dbUser.ID,
 			"name": dbUser.Name,
 		},
 	})
