@@ -1,8 +1,8 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router';
+import { RouterLink } from 'vue-router';
 import router from '../router';
 import axios from 'axios'
-import { axiosInstance, setTokenInCookie } from '../axiosInstance';
+import { axiosInstance, setTokenInCookie } from '../axios-func/axiosInstance';
 
 let username = ''
 let password = ''
@@ -41,7 +41,7 @@ function registerUser() {
             <RouterLink to='/login'>I have an account</RouterLink>
         </form>
     </fieldset>
-    <RouterView />
+    <!-- <RouterView /> -->
 </template>
 
 <style scoped></style>

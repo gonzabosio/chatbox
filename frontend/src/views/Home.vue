@@ -1,17 +1,17 @@
 <script setup>
 import { onMounted, ref } from 'vue';
-import router from '../router';
 import axios from 'axios';
-import { axiosInstance } from '../axiosInstance';
+import { axiosInstance } from '../axios-func/axiosInstance';
+import NavBar from '../components/home/ChatsNavBar.vue'
+import Welcome from '../components/home/Welcome.vue';
+import Chat from '../components/home/Chat.vue'
 
 let userData = ref({})
-const userId = localStorage.getItem('user-id')
-const sessionId = localStorage.getItem('session-id')
 
 onMounted(() => {
     axios({
         method: 'get',
-        url: `http://localhost:8000/user/${userId}`,
+        url: `http://localhost:8000/user/${localStorage.getItem('user-id')}`,
         headers: {
             Authorization: 'Bearer '+localStorage.getItem('access-token')
         },
@@ -27,6 +27,17 @@ onMounted(() => {
                 localStorage.setItem('access-token', res.data.access_token)
                 console.log(res.data.message)
                 userData.value = res.data.user_data
+                axios({
+                    method: 'get',
+                    url: `http://localhost:8000/user/${localStorage.getItem('user-id')}`,
+                    headers: {
+                        Authorization: 'Bearer '+localStorage.getItem('access-token')
+                    },
+                }).then(res => {
+                    userData.value = res.data.user_data
+                }).catch(err => {
+                    console.log('getting data after renew token failed: '+err.response.data.error)
+                })
             }).catch(err => {
                 if (err.response.data.message === "refresh token is not in cookies") {
                     console.log('Refresh token expired: '+ err.response.data.message)
@@ -42,37 +53,33 @@ onMounted(() => {
         }
     })
 })
-function logout() {
-    axios({
-        method: 'post',
-        url: `http://localhost:8000/revoke/${sessionId}`,
-    }).then(res => {
-        console.log('Refresh token revoked: '+ res.data.message)
-        axios({
-            method: 'post',
-            url: `http://localhost:8000/logout/${sessionId}`
-        }).then(res => {
-            console.log(res.data.message)
-            localStorage.clear()
-            router.replace('/')
-        }).catch(err => {
-            console.log(err.response.data.message)
-            console.log(err.response.data.error)
-        })
-    }).catch(err => {
-        console.log('Refresh token was not revoked: '+err.response.data.message)
-    })
+
+const chatID = ref('')
+const setChatId = (id) => {
+    chatID.value = id
 }
 </script>
+
 <template>
-    <div>
-        <h1>Home</h1>
-        <ul>
-            <li>{{ userData.id }}</li>
-            <li>{{ userData.name }}</li>
-        </ul>
-        <button @click="logout">Logout</button>
+    <div id="aligner">
+        <div id="navigation" v-if="userData">
+            <NavBar :username="userData.name" @chatIdSelected="setChatId"/>
+        </div>
+        <Chat v-if="chatID" :chatId="chatID"/>
+        <div id="chat" v-else="userData">
+            <Welcome  :username="userData.name" :userId="userId"/>
+        </div>
     </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+#all {
+    padding: 16px;
+}
+#navigation {
+    background-color: rgb(53, 53, 53);
+}
+#aligner {
+    display: flex;
+}
+</style>

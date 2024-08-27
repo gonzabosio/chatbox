@@ -3,8 +3,8 @@ package models
 import "time"
 
 type Chat struct {
-	ID           string            `bson:"_id,omitempty" json:"id,omitempty"`
-	Participants map[string]string `bson:"participants" json:"participants"`
+	ID           string              `bson:"_id,omitempty" json:"id,omitempty"`
+	Participants []map[string]string `bson:"participants" json:"participants"`
 }
 
 type Message struct {

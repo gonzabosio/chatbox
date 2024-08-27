@@ -1,19 +1,27 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-
 </script>
 
 <template>
       <header>
     <nav>
-        <RouterLink :to="{ path: '/', replace: true}"><img src="/chat-box.svg" alt="toRoot"></RouterLink>
-        <RouterLink to="/login">Login</RouterLink>
-        <RouterLink to="/register">Sign Up</RouterLink>
+        <div>
+          <RouterLink :to="{ path: '/', replace: true}"><img src="/chat-box.svg" alt="toRoot" class="nav-item"></RouterLink>
+          <RouterLink to="/login" class="nav-item">Login</RouterLink>
+          <RouterLink to="/register" class="nav-item">Sign Up</RouterLink>
+        </div>
     </nav>
   </header>
-  <RouterView/>
 </template>
 
 <style scoped>
+nav {
+  background-color: rgb(51, 51, 51);
+  padding: 10px;
+}
+nav div {
+  display: flex;
+  align-items: center;
+}
 a { margin-right: 20px; }
 </style>
