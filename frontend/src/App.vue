@@ -5,13 +5,13 @@ import router from './router'
 import { computed } from 'vue';
 
 const route = useRoute()
-const showNavBar = computed(() => route.path !== '/home' && route.path !== '/:pathMatch(.*)*')
+const showNavBar = computed(() => route.name !== 'home' && route.name !== 'not-found')
 
 </script>
 
 <template>
-  <NavBar v-if="showNavBar"/>
-  <RouterView/>
+  <NavBar v-if="showNavBar" />
+  <RouterView />
 </template>
 
 <style></style>

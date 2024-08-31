@@ -15,8 +15,8 @@ func NewJWTMaker(secretKey string) *JWTMaker {
 	return &JWTMaker{secretKey}
 }
 
-func (m *JWTMaker) CreateToken(id, username string, duration time.Duration) (string, *CustomClaims, error) {
-	claims, err := NewCustomClaims(id, username, duration)
+func (m *JWTMaker) CreateToken(userId, username string, duration time.Duration) (string, *CustomClaims, error) {
+	claims, err := NewCustomClaims(userId, username, duration)
 	if err != nil {
 		return "", nil, err
 	}

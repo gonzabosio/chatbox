@@ -10,6 +10,7 @@ import (
 
 type SessionsRepository interface {
 	CreateSessions(session *models.Session) (*models.Session, error)
+	GetRefresh(sessionId string) (string, error)
 	GetSessions(id string) (*models.Session, error)
 	RevokeSession(id string) error
 	DeleteSession(id string) error
@@ -23,6 +24,16 @@ func (ms *MongoDBService) CreateSessions(session *models.Session) (*models.Sessi
 	}
 	fmt.Println(result.InsertedID)
 	return session, nil
+}
+
+func (ms *MongoDBService) GetRefresh(sessionId string) (string, error) {
+	var res models.Session
+	filter := bson.D{{Key: "_id", Value: sessionId}}
+	err := ms.DB.Collection("sessions").FindOne(context.TODO(), filter).Decode(&res)
+	if err != nil {
+		return "", err
+	}
+	return res.RefreshToken, nil
 }
 
 func (ms *MongoDBService) GetSessions(id string) (*models.Session, error) {

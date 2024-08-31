@@ -10,3 +10,7 @@ type Session struct {
 	CreatedAt    time.Time `bson:"created_at" json:"created_at"`
 	ExpiresAt    time.Time `bson:"expires_at" json:"expires_at"`
 }
+
+type SessionReq struct {
+	ID string `bson:"_id" json:"session_id"`
+}

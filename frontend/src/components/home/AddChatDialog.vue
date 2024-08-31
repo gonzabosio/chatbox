@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { axiosInstance } from '../../axios-func/axiosInstance';
-import getChats from '../../axios-func/calls';
+import { addChat, loadChats } from '../../axios-func/calls';
 
 const props = defineProps({
     name: String
@@ -9,29 +9,10 @@ const props = defineProps({
 
 let newChat = ''
 let chats = {}
-function addChat() {
-    axiosInstance(({
-        method: 'post',
-        url: '/chat/add',
-        headers: {
-            Authorization: 'Bearer '+localStorage.getItem('access-token')
-        },
-        data: {
-            username: newChat,
-            petitioner_id: localStorage.getItem('user-id'),
-            petitioner: props.name
-        }
-    })).then(async res => {
-        console.log(res.data.message)
-        chats = await getChats()
-        sendNewChatList()
-    }).catch(err => {
-        console.log(err.response.data.message)
-    })
-}
 
 const emit = defineEmits(['chatsUpdated'])
 
+//send it when chats change
 const sendNewChatList = () => {
     console.log(chats)
     emit('chatsUpdated', chats)
@@ -41,30 +22,40 @@ const sendNewChatList = () => {
 <template>
     <v-dialog max-width="500">
         <template v-slot:activator="{ props: activatorProps }">
-            <v-btn
-            v-bind="activatorProps"
-            color="surface-variant"
-            text="Add Chat"
-            variant="flat"
-            ></v-btn>
+            <v-btn v-bind="activatorProps" color="surface-variant" text="Add Chat" variant="flat"></v-btn>
         </template>
 
         <template v-slot:default="{ isActive }">
-            <v-card title="New chat">
-                <v-text-field
-                v-model="newChat"
-                label="Username"
-                required
-              ></v-text-field>
-
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn text="Cancel" @click="isActive.value = false, newChat=''"></v-btn>
-                    <v-btn text="Add" @click="isActive.value = false, addChat(), newChat=''"></v-btn>
-                </v-card-actions>
-            </v-card>
+                <v-card title="New chat">
+                    <v-text-field v-model="newChat" label="Username" required></v-text-field>
+    
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn text="Cancel" @click="isActive.value = false, newChat = ''"></v-btn>
+                        <v-btn class="btn-add" text="Add" @click="isActive.value = false, chats = addChat(newChat, props.name), newChat = ''"></v-btn>
+                    </v-card-actions>
+                </v-card>
         </template>
     </v-dialog>
 </template>
 
-<style scoped></style>
+<style scoped>
+.v-btn:hover {
+    background-color: #6363630e;
+    color: #ebebeb71;
+}
+
+.v-btn {
+    cursor: pointer;
+    background-color: #2e2e2e69;
+    color: #bdbdbd8a; 
+}
+.btn-add {
+    cursor: pointer;
+    background-color: rgba(97, 97, 97, 0.747);
+    color: rgba(228, 228, 228, 0.562);
+}
+.btn-add:hover {
+    color: rgba(228, 228, 228, 0.562);
+}
+</style>

@@ -14,14 +14,14 @@ type CustomClaims struct {
 	jwt.RegisteredClaims
 }
 
-func NewCustomClaims(id, username string, duration time.Duration) (*CustomClaims, error) {
+func NewCustomClaims(userId, username string, duration time.Duration) (*CustomClaims, error) {
 	tokenId, err := uuid.NewRandom()
 	if err != nil {
 		return nil, fmt.Errorf("error generating token id: %v", err)
 	}
 
 	return &CustomClaims{
-		ID:       id,
+		ID:       userId,
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        tokenId.String(),

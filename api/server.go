@@ -63,10 +63,10 @@ func (a *App) routing(h *handler) {
 	a.router.Group(func(r chi.Router) {
 		r.Post("/signup", h.signUp)
 		r.Post("/signin", h.signIn)
-		r.Delete("/logout/{sessionId}", h.logout)
+		r.Delete("/logout/{session-id}", h.logout)
 		a.router.Route("/token", func(r chi.Router) {
-			r.Post("/renew", h.renewAccessToken)
-			r.Post("/revoke/{sessionId}", h.revokeSession)
+			r.Post("/renew/{session-id}", h.renewAccessToken)
+			r.Post("/revoke/{session-id}", h.revokeSession)
 		})
 	})
 	//Private

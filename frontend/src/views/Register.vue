@@ -2,21 +2,19 @@
 import { RouterLink } from 'vue-router';
 import router from '../router';
 import axios from 'axios'
-import { axiosInstance, setTokenInCookie } from '../axios-func/axiosInstance';
 
 let username = ''
 let password = ''
 
-function registerUser() {
-    axiosInstance({
+async function registerUser() {
+    await axios({
         method: 'post',
-        url: '/signup',
+        url: 'http://localhost:8000/signup',
         data: {
             name: username,
             password: password
         }
     }).then(res => {
-        setTokenInCookie(res.data.refresh_token)
         console.log('Message: ' + res.data.message)
         console.log('Status: ' + res.status)
         console.log('StatusText: ' + res.statusText)
@@ -41,7 +39,6 @@ function registerUser() {
             <RouterLink to='/login'>I have an account</RouterLink>
         </form>
     </fieldset>
-    <!-- <RouterView /> -->
 </template>
 
 <style scoped></style>

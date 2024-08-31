@@ -1,22 +1,19 @@
 <script setup>
-import { parseQuery, RouterLink } from 'vue-router';
+import { RouterLink } from 'vue-router';
 import router from '../router';
-import axios from 'axios'
-import { axiosInstance, setTokenInCookie } from '../axios-func/axiosInstance'
+import axios from 'axios';
 let username = ''
 let password = ''
 
-function userLogin() {
-
-  axiosInstance({
+async function userLogin() {
+  await axios({
     method: 'post',
-    url: '/signin',
+    url: 'http://localhost:8000/signin',
     data: {
       name: username,
       password: password
     }
   }).then(res => {
-    setTokenInCookie(res.data.refresh_token)
     console.log('Message: ' + res.data.message)
     console.log('Status: ' + res.status)
     console.log('StatusText: ' + res.statusText)

@@ -89,13 +89,6 @@ func (h *handler) signUp(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh_token",
-		Value:    refreshToken,
-		Expires:  time.Now().Add(24 * time.Hour),
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	})
 	respondJSON(w, http.StatusOK, map[string]interface{}{
 		"message":       "User added successfully",
 		"session_id":    session.ID,
@@ -165,13 +158,6 @@ func (h *handler) signIn(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh_token",
-		Value:    refreshToken,
-		Expires:  time.Now().Add(24 * time.Hour),
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	})
 	respondJSON(w, http.StatusOK, map[string]interface{}{
 		"message":       "User logged successfully",
 		"session_id":    session.ID,
@@ -187,7 +173,7 @@ func (h *handler) signIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) logout(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "sessionId")
+	id := chi.URLParam(r, "session-id")
 	if id == "" {
 		respondJSON(w, http.StatusBadRequest, map[string]string{"message": "Missing session id"})
 		return
@@ -203,17 +189,17 @@ func (h *handler) logout(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, map[string]string{"message": "User logged out"})
 }
 
-type RenewAccessTokenReq struct {
-	RefreshToken string `json:"refresh_token"`
-}
-
 func (h *handler) renewAccessToken(w http.ResponseWriter, r *http.Request) {
-	refreshToken, err := r.Cookie("refresh_token")
+	sessionId := chi.URLParam(r, "session-id")
+	refreshTokenStr, err := h.service.GetRefresh(sessionId)
 	if err != nil {
-		respondJSON(w, http.StatusUnauthorized, map[string]string{"message": "refresh token is not in cookies"})
+		respondJSON(w, http.StatusBadRequest, map[string]string{
+			"message": "Could not found user session",
+			"error":   err.Error(),
+		})
 		return
 	}
-	refreshClaims, err := h.tokenMaker.VerifyToken(refreshToken.Value)
+	refreshClaims, err := h.tokenMaker.VerifyToken(refreshTokenStr)
 	if err != nil {
 		respondJSON(w, http.StatusUnauthorized, map[string]string{
 			"message": "Error verifying token",
@@ -250,7 +236,7 @@ func (h *handler) renewAccessToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) revokeSession(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "sessionId")
+	id := chi.URLParam(r, "session-id")
 	if id == "" {
 		respondJSON(w, http.StatusBadRequest, map[string]string{"message": "Missing session id"})
 		return
