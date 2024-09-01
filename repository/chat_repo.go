@@ -13,11 +13,11 @@ import (
 
 type ChatRepository interface {
 	LoadChats(userId string) ([]models.Chat, error)
-	AddContact(contact *models.Contact) error
-	DeleteContact(chatId string) error
+	AddChat(contact *models.Contact) (interface{}, error)
+	DeleteChat(chatId string) error
 	SendMessages(msgReq *models.Message) error
 	LoadMessages(chatId string) ([]models.Message, error)
-	EditMessage(msgId string) error
+	EditMessage(msgId, newMsg string) error
 	DeleteMessage(msgId string) error
 }
 
@@ -87,6 +87,12 @@ func (ms *MongoDBService) DeleteChat(chatId string) error {
 	}
 	filter := bson.D{{Key: "_id", Value: id}}
 	_, err = coll.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		return err
+	}
+	coll = ms.DB.Collection("messages")
+	filter = bson.D{{Key: "chat_id", Value: chatId}}
+	_, err = coll.DeleteMany(context.TODO(), filter)
 	if err != nil {
 		return err
 	}

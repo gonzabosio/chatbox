@@ -1,7 +1,9 @@
 package api
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -19,9 +21,13 @@ type handler struct {
 }
 
 func NewHandler(app *App, secretKey string) *handler {
+	key, err := base64.StdEncoding.DecodeString(secretKey)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
 	return &handler{
 		service:    &repository.MongoDBService{DB: app.client.Database("chat_box")},
-		tokenMaker: token.NewJWTMaker(secretKey),
+		tokenMaker: token.NewJWTMaker(string(key)),
 	}
 }
 

@@ -18,7 +18,7 @@ type MongoDBService struct {
 type UserRepository interface {
 	RegisterUser(user *models.User) (*mongo.InsertOneResult, error)
 	LoginUser(user *models.User) (*models.User, error)
-	GetUserById(user *models.User, id string) error
+	GetUserById(user *models.User, id primitive.ObjectID) error
 }
 
 func (ms *MongoDBService) RegisterUser(user *models.User) (*mongo.InsertOneResult, error) {
