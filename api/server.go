@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
+	ws "github.com/gonzabosio/chat-box/websocket"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -43,12 +44,13 @@ func (a *App) InitServer() error {
 	fmt.Println("Successfully connected to MongoDB!")
 
 	handler := NewHandler(a, os.Getenv("JWT_KEY"))
-	a.routing(handler)
+	wshandler := ws.NewWSHandler(handler.service)
+	a.routing(handler, wshandler)
 
 	return nil
 }
 
-func (a *App) routing(h *handler) {
+func (a *App) routing(h *handler, wsh *ws.WSHandler) {
 	a.router = chi.NewRouter()
 	a.router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:8100"},
@@ -83,6 +85,9 @@ func (a *App) routing(h *handler) {
 			r.Post("/send-message", h.sendMessage)
 			r.Patch("/edit-message", h.editMessage)
 			r.Delete("/delete-message/{msg-id}", h.deleteMessage)
+		})
+		a.router.Route("/ws", func(r chi.Router) {
+			r.HandleFunc("/send-msg", wsh.ChatMsgHandler)
 		})
 	})
 }

@@ -58,21 +58,6 @@ export const loadMessages = (chatId) => axiosInstance({
     return []
 })
 
-export const sendMessage = (chatId, userId, text) => axiosInstance({
-    method: 'post',
-    url: '/chat/send-message',
-    data: {
-        chat_id: chatId,
-        sender_id: userId,
-        content: text
-    }
-}).then(res => {
-    console.log(res.data.message)
-}).catch(err => {
-    console.log(err.response.data.message)
-    console.log(err.response.data.error)
-})
-
 export const deleteChat = (chatId) => axiosInstance({
     method: 'delete',
     url: `/chat/delete/${chatId}`

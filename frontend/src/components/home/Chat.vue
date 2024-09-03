@@ -1,6 +1,6 @@
 <script setup>
-import { onMounted, ref, watch, watchEffect } from 'vue';
-import { loadMessages, sendMessage } from '../../axios-func/calls'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { loadMessages } from '../../axios-func/calls'
 
 const props = defineProps({
     chatName: String,
@@ -8,20 +8,46 @@ const props = defineProps({
     userId: String
 })
 
-const messages = ref([])
+let messages = ref([])
+const message = ref('')
+let socket
 onMounted(async () => {
     messages.value = await loadMessages(props.chatId)
+    socket = new WebSocket(`ws://localhost:8000/ws/send-msg?wsauth=${localStorage.getItem('access-token')}`)
+    socket.onopen = () => {
+        console.log('Websocket connection opened')
+    }
+    socket.onerror = (err) => {
+        console.log('Websocket error: '+err)
+    }
+    socket.onmessage = (event) => {
+        message.value = ''
+        messages.value.push(JSON.parse(event.data))
+    }
+    socket.onclose = () => {
+        console.log('Websocket connection closed')
+    }
 })
 
 watch(() => props.chatId, async (newChatId) => {
     messages.value = await loadMessages(newChatId)
 })
 
-const message = ref('')
 const sendMsg = () => {
-    sendMessage(props.chatId, localStorage.getItem('user-id'), message.value)
+    console.log('Sending message...')
+    const msg = {
+        chat_id: props.chatId,
+        sender_id: localStorage.getItem('user-id'),
+        content: message.value
+    }
+    socket.send(JSON.stringify(msg))
     console.log(message.value)
 }
+
+onBeforeUnmount(() => {
+    socket.close()
+})
+
 </script>
 
 <template>

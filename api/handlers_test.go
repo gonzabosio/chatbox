@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/gonzabosio/chat-box/models"
+	ws "github.com/gonzabosio/chat-box/websocket"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,7 +18,8 @@ func TestSignUp(t *testing.T) {
 		t.Fatal(err)
 	}
 	handler := NewHandler(app, os.Getenv("JWT_KEY"))
-	app.routing(handler)
+	wshandler := ws.NewWSHandler(handler.service)
+	app.routing(handler, wshandler)
 
 	t.Run("Assert equal if user already exists", func(t *testing.T) {
 		body := &models.User{
@@ -66,7 +68,8 @@ func TestSignIn(t *testing.T) {
 		t.Fatal(err)
 	}
 	handler := NewHandler(app, os.Getenv("JWT_KEY"))
-	app.routing(handler)
+	wshandler := ws.NewWSHandler(handler.service)
+	app.routing(handler, wshandler)
 
 	t.Run("Assert equal if invalid user", func(t *testing.T) {
 		body := &models.User{
