@@ -27,8 +27,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func (h *WSHandler) ChatMsgHandler(w http.ResponseWriter, r *http.Request) {
-
+func (h *WSHandler) SendMsgWS(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("Could not upgrade to ws prot: ", err)
@@ -39,23 +38,75 @@ func (h *WSHandler) ChatMsgHandler(w http.ResponseWriter, r *http.Request) {
 	for {
 		_, msg, err := c.ReadMessage()
 		if err != nil {
-			log.Println(err)
-			// show error in body response
+			c.WriteJSON(map[string]string{
+				"message": "Could not read message to send",
+				"error":   err.Error(),
+			})
 		}
 		log.Println(string(msg))
 
 		var body *models.Message
 		if err = json.Unmarshal(msg, &body); err != nil {
-			log.Println(err)
-			continue
+			c.WriteJSON(map[string]string{
+				"message": "Could not unmarshal request body",
+				"error":   err.Error(),
+			})
 		}
 		log.Println(body)
 
 		h.service.SendMessages(body)
 
 		if err = c.WriteJSON(&body); err != nil {
-			log.Println(err)
-			// show error in body response
+			c.WriteJSON(map[string]string{
+				"message": "Could not respond with sent message",
+				"error":   err.Error(),
+			})
+		}
+	}
+}
+
+func (h *WSHandler) EditMsgWS(w http.ResponseWriter, r *http.Request) {
+	c, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("Could not upgrade to ws prot: ", err)
+		return
+	}
+	defer c.Close()
+	type editMsgReq struct {
+		MessageID  string `json:"message_id"`
+		NewMessage string `json:"new_message"`
+	}
+	for {
+		_, msg, err := c.ReadMessage()
+		if err != nil {
+			c.WriteJSON(map[string]string{
+				"message": "Could not read message update request",
+				"error":   err.Error(),
+			})
+		}
+		log.Println(string(msg))
+
+		var body *editMsgReq
+		if err = json.Unmarshal(msg, &body); err != nil {
+			c.WriteJSON(map[string]string{
+				"message": "Could not unmarshal request body",
+				"error":   err.Error(),
+			})
+		}
+		log.Println(body)
+
+		newMsg, err := h.service.EditMessage(body.MessageID, body.NewMessage)
+		if err != nil {
+			c.WriteJSON(map[string]string{
+				"message": "Could not edit message",
+				"error":   err.Error(),
+			})
+		}
+		if err = c.WriteJSON(&newMsg); err != nil {
+			c.WriteJSON(map[string]string{
+				"message": "Could not respond with updated message",
+				"error":   err.Error(),
+			})
 		}
 	}
 }

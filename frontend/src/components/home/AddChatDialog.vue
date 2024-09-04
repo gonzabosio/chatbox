@@ -8,21 +8,19 @@ const props = defineProps({
 })
 
 let newChat = ''
-let chats = {}
-
+let chat = {}
 const emit = defineEmits(['chatsUpdated'])
 
-//send it when chats change
-const sendNewChatList = () => {
-    console.log(chats)
-    emit('chatsUpdated', chats)
+const sendNewChatList = (chat) => {
+    console.log(chat)
+    emit('chatsUpdated', chat)
 }
 </script>
 
 <template>
     <v-dialog max-width="500">
         <template v-slot:activator="{ props: activatorProps }">
-            <v-btn v-bind="activatorProps" color="surface-variant" text="Add Chat" variant="flat"></v-btn>
+            <v-btn v-bind="activatorProps" text="Add Chat" variant="flat" id="open-dialog-btn"></v-btn>
         </template>
 
         <template v-slot:default="{ isActive }">
@@ -32,7 +30,12 @@ const sendNewChatList = () => {
                     <v-card-actions>
                         <v-spacer></v-spacer>
                         <v-btn text="Cancel" @click="isActive.value = false, newChat = ''"></v-btn>
-                        <v-btn class="btn-add" text="Add" @click="isActive.value = false, chats = addChat(newChat, props.name), newChat = ''"></v-btn>
+                        <v-btn class="btn-add" text="Add" @click="async () => {
+                            isActive.value = false, 
+                            chat = await addChat(newChat, props.name), 
+                            sendNewChatList(chat),
+                            newChat = ''
+                        }"></v-btn>
                     </v-card-actions>
                 </v-card>
         </template>
@@ -40,6 +43,9 @@ const sendNewChatList = () => {
 </template>
 
 <style scoped>
+#open-dialog-btn {
+    background-color: rgb(66, 90, 61);
+}
 .v-btn:hover {
     background-color: #6363630e;
     color: #ebebeb71;

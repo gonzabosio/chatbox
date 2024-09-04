@@ -54,7 +54,7 @@ func (a *App) routing(h *handler, wsh *ws.WSHandler) {
 	a.router = chi.NewRouter()
 	a.router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:8100"},
-		AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		MaxAge:           300,
@@ -83,11 +83,12 @@ func (a *App) routing(h *handler, wsh *ws.WSHandler) {
 			r.Delete("/delete/{chat-id}", h.deleteChat)
 			r.Get("/load-messages/{chat-id}", h.loadMessages)
 			r.Post("/send-message", h.sendMessage)
-			r.Patch("/edit-message", h.editMessage)
+			r.Put("/edit-message", h.editMessage)
 			r.Delete("/delete-message/{msg-id}", h.deleteMessage)
 		})
 		a.router.Route("/ws", func(r chi.Router) {
-			r.HandleFunc("/send-msg", wsh.ChatMsgHandler)
+			r.HandleFunc("/send-msg", wsh.SendMsgWS)
+			r.HandleFunc("/edit-msg", wsh.EditMsgWS)
 		})
 	})
 }

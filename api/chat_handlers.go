@@ -35,15 +35,15 @@ func (h *handler) addChat(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	id, err := h.service.AddChat(&contact)
+	newChat, err := h.service.AddChat(&contact)
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{"message": err.Error()})
 		return
 	}
 	respondJSON(w, http.StatusOK, map[string]interface{}{
 		"message": "Chat added successfully",
+		"chat":    newChat,
 		"contact": contact,
-		"chat_id": id,
 	})
 }
 
@@ -96,7 +96,7 @@ func (h *handler) sendMessage(w http.ResponseWriter, r *http.Request) {
 	}
 	respondJSON(w, http.StatusOK, map[string]interface{}{
 		"message": "Message was sent",
-		"data":    bodyReq,
+		"doc":     bodyReq,
 	})
 }
 
@@ -114,7 +114,7 @@ func (h *handler) editMessage(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	err = h.service.EditMessage(bodyReq.MessageID, bodyReq.NewMessage)
+	newMsg, err := h.service.EditMessage(bodyReq.MessageID, bodyReq.NewMessage)
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{
 			"message": "Could not edit message",
@@ -122,7 +122,10 @@ func (h *handler) editMessage(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	respondJSON(w, http.StatusOK, map[string]string{"message": "Message edited"})
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"message":     "Message edited",
+		"new_message": newMsg,
+	})
 }
 
 func (h *handler) deleteMessage(w http.ResponseWriter, r *http.Request) {

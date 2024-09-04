@@ -39,7 +39,7 @@ export const addChat = (newChat, name) => axiosInstance(({
     }
 })).then(async res => {
     console.log(res.data.message)
-    return await loadChats()
+    return res.data.chat
 }).catch(err => {
     console.log(err.response.data.message)
     console.log(err.response.data.error)
@@ -66,6 +66,16 @@ export const deleteChat = (chatId) => axiosInstance({
 }).catch(err => {
     console.log(err.response.data.error)
     console.log(err.response.data.message)
+})
+
+export const deleteMessage = (msgId) => axiosInstance({
+    method: 'delete',
+    url: `/chat/delete-message/${msgId}`
+}).then((res) => {
+    console.log(res.data.message)
+}).catch(err => {
+    console.log(err.response.data.message)
+    console.log(err.response.data.error)
 })
 
 // SESSION METHODS

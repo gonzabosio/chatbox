@@ -19,10 +19,14 @@ const filteredChats = computed(() => {
     })) : [];
 });
 
-const refreshChatList = (newList) => {
-    chats.value = newList
+const refreshChatList = (newChat) => {
+    console.log('NEW CHAT: '+JSON.stringify(newChat))
+    chats.value.push(newChat)
 }
-
+const chatListAfterDelete = async () => {
+    chats.value = await loadChats()
+    console.log(chats.value)
+}
 const emit = defineEmits(['chatSelected'])
 
 const setId = (id, chatname) => {
@@ -48,18 +52,13 @@ const setId = (id, chatname) => {
                     <div>
                         <p>{{ contact.name }}</p>
                     </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-trash-filled" width="22"
-                        height="22" viewBox="0 0 24 24" stroke-width="1.5" stroke="#9e9e9e" fill="none"
-                        stroke-linecap="round" stroke-linejoin="round" id="delete-button"
-                        @click.stop="console.log('Delete: ' + contact.name), deleteChat(item.chat.id)">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path
-                            d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007h16z"
-                            stroke-width="0" fill="currentColor" />
-                        <path
-                            d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005h4z"
-                            stroke-width="0" fill="currentColor" />
-                    </svg>
+                    <button @click.stop="async () => {
+                            console.log('Delete: ' + contact.name),
+                            await deleteChat(item.chat.id), 
+                            chatListAfterDelete()
+                        }" id="del-chat-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg"  width="22"  height="22"  viewBox="0 0 24 24"  fill="none"  stroke="#e6e6e6"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>
+                    </button>
                 </div>
             </div>
         </div>
@@ -70,7 +69,7 @@ const setId = (id, chatname) => {
 #content {
     padding-left: 16px;
     padding-right: 16px;
-    width: 300px;
+    width: 260px;
     height: 100vh;
     overflow-y: hidden;
     box-sizing: border-box;
@@ -91,10 +90,6 @@ const setId = (id, chatname) => {
     padding: 3px 6px 3px 6px;
 }
 
-#delete-button:hover {
-    color: rgb(165, 26, 26);
-}
-
 #chat-card:hover {
     cursor: pointer;
     background-color: rgb(85, 85, 85);
@@ -110,5 +105,18 @@ const setId = (id, chatname) => {
 #top button {
     cursor: pointer;
     height: 30px;
+}
+#del-chat-btn {
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+}
+#del-chat-btn:hover .icon-tabler-trash {
+    stroke: #d83820;
+    background-color: rgba(133, 133, 133, 0.664);
+    border-radius: 9px;
+}
+.icon-tabler-trash {
+    padding: 8px;
 }
 </style>
