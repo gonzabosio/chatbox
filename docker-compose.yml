@@ -1,0 +1,14 @@
+version: '2.28.1'
+
+services:
+  backend:
+    image: chat-box-back:v1
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+
+  frontend:
+    image: chat-box-front:v1
+    ports:
+      - "8100:8100"

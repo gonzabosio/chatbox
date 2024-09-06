@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"github.com/gonzabosio/chat-box/api"
 	"github.com/joho/godotenv"
@@ -26,7 +27,7 @@ func main() {
 	}()
 
 	signalCh := make(chan os.Signal, 1)
-	signal.Notify(signalCh)
+	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
 	<-signalCh
 	app.ShutdownConn()
 }

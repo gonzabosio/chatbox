@@ -6,7 +6,8 @@ import { RouterLink } from 'vue-router'
   <header>
     <nav>
       <div>
-        <RouterLink :to="{ path: '/', replace: true }"><img src="../../box_icon.png" alt="to-landing"></RouterLink>
+        <RouterLink :to="{ path: '/', replace: true }"><img src="../../public/box_icon.png" alt="to-landing">
+        </RouterLink>
         <RouterLink to="/login" class="nav-item">Login</RouterLink>
         <RouterLink to="/register" class="nav-item">Sign Up</RouterLink>
       </div>
