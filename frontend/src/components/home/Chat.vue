@@ -21,7 +21,7 @@ onMounted(async () => {
         console.log('Websocket connection opened to send messages')
     }
     msgSenderSocket.onerror = (err) => {
-        console.log('Websocket error: '+err)
+        console.log('Websocket error: ' + err)
     }
     msgSenderSocket.onmessage = (event) => {
         message.value = ''
@@ -41,10 +41,9 @@ onMounted(async () => {
         console.log('Websocket connection opened to edit messages')
     }
     msgEditorSocket.onerror = (err) => {
-        console.log('Websocket error: '+err)
+        console.log('Websocket error: ' + err)
     }
     msgEditorSocket.onmessage = (event) => {
-        console.log(JSON.parse(event.data))
         messages.value.splice(msgIndex, 1, JSON.parse(event.data))
     }
     msgEditorSocket.onclose = () => {
@@ -58,7 +57,7 @@ watch(() => props.chatId, async (newChatId) => {
 
 const sendMsg = () => {
     if (message.value == '') {
-        console.log('Empty string')
+        console.log('Empty message')
     } else {
         console.log('Sending message...')
         const msg = {
@@ -67,15 +66,11 @@ const sendMsg = () => {
             content: message.value
         }
         msgSenderSocket.send(JSON.stringify(msg))
-        console.log(message.value)
     }
 }
 
 let msgIndex = ''
-const putMessage = async (msgId, newMsg) => {
-    console.log('Editin in: '+msgIndex)
-    console.log('Editing message to: '+newMsg)
-    console.log('Editing in messageID: '+msgId)
+const putMessage = (msgId, newMsg) => {
     const msgUpdate = {
         message_id: msgId,
         new_message: newMsg
@@ -84,7 +79,6 @@ const putMessage = async (msgId, newMsg) => {
 }
 
 const deleteMsg = async (msgId, index) => {
-    console.log('Deleting message: '+msgId)
     await deleteMessage(msgId)
     messages.value.splice(index, 1)[0]
 }
@@ -98,16 +92,19 @@ onBeforeUnmount(() => {
 
 <template>
     <div id="chat-container">
-        <h2>{{ props.chatName }}</h2>
-        <hr>
+        <div class="header">
+            <h2>{{ props.chatName }}</h2>
+            <hr>
+        </div>
         <div class="messages">
             <div v-for="(item, index) in messages" :key="index">
                 <div :class="[item.sender_id === props.userId ? 'sent' : 'received']">
                     <div class="sub-msg-container">
                         <div v-if="item.sender_id === props.userId" class="options">
-                             <EditMessageDialog :messageToEdit="item.content" :messageId="item.id" @updateMessage="putMessage" @click="msgIndex=index"/>
-                            <button @click="deleteMsg(item.id, index)" 
-                                id="del-msg-btn"><img src="../../assets/trash.svg" alt="delete">
+                            <EditMessageDialog :messageToEdit="item.content" :messageId="item.id"
+                                @updateMessage="putMessage" @click="msgIndex = index" />
+                            <button @click="deleteMsg(item.id, index)" id="del-msg-btn"><img
+                                    src="../../assets/trash.svg" alt="delete">
                             </button>
                         </div>
                         <p class="msg-content">{{ item.content }}</p>
@@ -124,25 +121,29 @@ onBeforeUnmount(() => {
 
 <style scoped>
 #chat-container {
-    position: static;
     display: flex;
     width: 60%;
     flex-direction: column;
     height: 100vh;
-    border-right: 6px solid rgba(70, 160, 70, 0.493);
+    border-right: 6px solid #065464;
 }
 
-h2 {
-    margin-left: 16px;
-    margin-right: 16px;
-}
+.header {
+    h2 {
+        margin-left: 16px;
+    }
 
-hr {
-    width: 97%;
+    hr {
+        width: 97%;
+    }
 }
 
 .messages {
     flex-grow: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #85c3cf transparent;
+    padding-top: 16px;
     padding-left: 16px;
     padding-right: 16px;
 }
@@ -167,25 +168,33 @@ hr {
 }
 
 .sent .msg-content {
-    background-color: #4a7555;
+    background-color: #2fa3b3;
 }
 
 .received .msg-content {
-    background-color: rgb(122, 122, 122);
+    background-color: #7a7d84;
 }
+
 .sent .sub-msg-container {
     display: flex;
+    flex-direction: column;
+    position: relative;
 }
 
 .options {
-    position: absolute;
+    display: flex;
+    justify-content: flex-end;
     visibility: hidden;
     opacity: 0;
+    position: absolute;
+    right: 0px;
+    top: -12px;
 }
+
 .sub-msg-container:hover .options {
     visibility: visible;
     opacity: 1;
-    transition-delay: 0.6s;
+    transition-delay: 0.5s;
     display: flex;
     align-items: center;
 }
@@ -193,12 +202,13 @@ hr {
 #del-msg-btn {
     cursor: pointer;
     width: 60px;
-    padding: 8px;
+    padding: 6px;
     background-color: rgba(46, 46, 46, 0.37);
     transition: 0.3s;
     border: none;
     border-radius: 6px;
 }
+
 #del-msg-btn:hover {
     background-color: rgb(196, 66, 66);
     transition: 0.3s;
@@ -209,6 +219,7 @@ hr {
     width: 100%;
     justify-content: center;
     margin-bottom: 10px;
+    border: none;
 }
 
 input {
@@ -216,6 +227,7 @@ input {
     height: 34px;
     background-color: transparent;
     border-radius: 10px;
+    border: 1px solid darkgray;
 }
 
 input:focus-visible {
@@ -226,9 +238,13 @@ input:focus-visible {
     cursor: pointer;
     width: 60px;
     height: 40px;
-    background-color: rgba(70, 160, 70, 0.493);
+    background-color: transparent;
     border: none;
     border-radius: 10px;
     margin-left: 4px;
+
+    &:hover {
+        background-color: #62626383;
+    }
 }
 </style>

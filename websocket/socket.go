@@ -54,9 +54,15 @@ func (h *WSHandler) SendMsgWS(w http.ResponseWriter, r *http.Request) {
 		}
 		log.Println(body)
 
-		h.service.SendMessages(body)
+		newMsg, err := h.service.SendMessages(body)
+		if err != nil {
+			c.WriteJSON(map[string]string{
+				"message": "Could not respond save message in database",
+				"error":   err.Error(),
+			})
+		}
 
-		if err = c.WriteJSON(&body); err != nil {
+		if err = c.WriteJSON(&newMsg); err != nil {
 			c.WriteJSON(map[string]string{
 				"message": "Could not respond with sent message",
 				"error":   err.Error(),

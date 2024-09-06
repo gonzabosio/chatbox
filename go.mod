@@ -18,6 +18,11 @@ require github.com/google/uuid v1.6.0
 require github.com/gorilla/websocket v1.5.3
 
 require (
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/go-chi/httprate v0.14.1
+)
+
+require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-chi/cors v1.2.1
 	github.com/pmezard/go-difflib v1.0.0 // indirect

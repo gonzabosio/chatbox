@@ -76,58 +76,6 @@ func (h *handler) loadMessages(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *handler) sendMessage(w http.ResponseWriter, r *http.Request) {
-	bodyReq := new(models.Message)
-	err := json.NewDecoder(r.Body).Decode(&bodyReq)
-	if err != nil {
-		respondJSON(w, http.StatusBadRequest, map[string]string{
-			"message": "Could not read body request to send message",
-			"error":   err.Error(),
-		})
-		return
-	}
-	err = h.service.SendMessages(bodyReq)
-	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{
-			"message": "Could not send the message",
-			"error":   err.Error(),
-		})
-		return
-	}
-	respondJSON(w, http.StatusOK, map[string]interface{}{
-		"message": "Message was sent",
-		"doc":     bodyReq,
-	})
-}
-
-func (h *handler) editMessage(w http.ResponseWriter, r *http.Request) {
-	type EditBodyReq struct {
-		MessageID  string `json:"message_id"`
-		NewMessage string `json:"new_message"`
-	}
-	bodyReq := new(EditBodyReq)
-	err := json.NewDecoder(r.Body).Decode(&bodyReq)
-	if err != nil {
-		respondJSON(w, http.StatusBadRequest, map[string]string{
-			"message": "Could not read body request to edit the message",
-			"error":   err.Error(),
-		})
-		return
-	}
-	newMsg, err := h.service.EditMessage(bodyReq.MessageID, bodyReq.NewMessage)
-	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{
-			"message": "Could not edit message",
-			"error":   err.Error(),
-		})
-		return
-	}
-	respondJSON(w, http.StatusOK, map[string]interface{}{
-		"message":     "Message edited",
-		"new_message": newMsg,
-	})
-}
-
 func (h *handler) deleteMessage(w http.ResponseWriter, r *http.Request) {
 	msgId := chi.URLParam(r, "msg-id")
 	err := h.service.DeleteMessage(msgId)

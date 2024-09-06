@@ -16,7 +16,7 @@ type ChatRepository interface {
 	LoadChats(userId string) ([]models.Chat, error)
 	AddChat(contact *models.Contact) (*models.Chat, error)
 	DeleteChat(chatId string) error
-	SendMessages(msgReq *models.Message) error
+	SendMessages(msgReq *models.Message) (*models.Message, error)
 	LoadMessages(chatId string) ([]models.Message, error)
 	EditMessage(msgId, newMsg string) (*models.Message, error)
 	DeleteMessage(msgId string) error
@@ -49,7 +49,7 @@ func (ms *MongoDBService) AddChat(contact *models.Contact) (*models.Chat, error)
 	filter := bson.D{{Key: "name", Value: contact.Username}}
 	err := coll.FindOne(context.TODO(), filter).Decode(&newContact)
 	if err != nil {
-		return nil, fmt.Errorf("could not found the contact: %v", err)
+		return nil, err
 	}
 
 	coll = ms.DB.Collection("chats")
@@ -118,14 +118,16 @@ func (ms *MongoDBService) LoadMessages(chatId string) ([]models.Message, error) 
 	return mesagges, nil
 }
 
-func (ms *MongoDBService) SendMessages(msgReq *models.Message) error {
+func (ms *MongoDBService) SendMessages(msgReq *models.Message) (*models.Message, error) {
 	msgReq.SentAt = time.Now()
 	coll := ms.DB.Collection("messages")
-	_, err := coll.InsertOne(context.TODO(), msgReq)
+	res, err := coll.InsertOne(context.TODO(), msgReq)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	var newMsg *models.Message
+	coll.FindOne(context.TODO(), bson.D{{Key: "_id", Value: res.InsertedID}}).Decode(&newMsg)
+	return newMsg, nil
 }
 
 func (ms *MongoDBService) EditMessage(msgId, newMsg string) (*models.Message, error) {

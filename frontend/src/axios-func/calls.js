@@ -42,8 +42,7 @@ export const addChat = (newChat, name) => axiosInstance(({
     return res.data.chat
 }).catch(err => {
     console.log(err.response.data.message)
-    console.log(err.response.data.error)
-    return
+    throw err
 })
 
 export const loadMessages = (chatId) => axiosInstance({

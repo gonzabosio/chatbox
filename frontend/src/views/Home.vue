@@ -21,12 +21,10 @@ const setChat = (id, name) => {
 
 <template>
     <div id="aligner">
-        <div id="navigation" v-if="userData">
-            <NavBar :username="userData.name" @chatSelected="setChat" />
-        </div>
-        <Chat v-if="chatID" :chatName="chatName" :chatId="chatID" :userId="userData.id"/>
+        <NavBar :username="userData.name" @chatSelected="setChat" />
+        <Chat v-if="chatID && userData" :chatName="chatName" :chatId="chatID" :userId="userData.id" />
         <div id="chat" v-else="userData">
-            <Welcome :username="userData.name" :userId="userId" />
+            <Welcome :username="userData.name" :userId="userData.id" />
         </div>
     </div>
 </template>
@@ -34,10 +32,6 @@ const setChat = (id, name) => {
 <style scoped>
 #all {
     padding: 16px;
-}
-
-#navigation {
-    background-color: rgb(53, 53, 53);
 }
 
 #aligner {
