@@ -13,10 +13,11 @@ const messages = ref([])
 const message = ref('')
 let msgSenderSocket
 let msgEditorSocket
+const wsUrl = import.meta.env.VITE_WS_URL
 onMounted(async () => {
     messages.value = await loadMessages(props.chatId)
     // Message Sender WebSocket
-    msgSenderSocket = new WebSocket(`ws://localhost:8000/ws/send-msg?wsauth=${localStorage.getItem('access-token')}`)
+    msgSenderSocket = new WebSocket(`${wsUrl}/send-msg?wsauth=${localStorage.getItem('access-token')}`)
     msgSenderSocket.onopen = () => {
         console.log('Websocket connection opened to send messages')
     }
@@ -36,7 +37,7 @@ onMounted(async () => {
         console.log('Websocket connection closed')
     }
     // Message Editor WebSocket
-    msgEditorSocket = new WebSocket(`ws://localhost:8000/ws/edit-msg?wsauth=${localStorage.getItem('access-token')}`)
+    msgEditorSocket = new WebSocket(`${wsUrl}/edit-msg?wsauth=${localStorage.getItem('access-token')}`)
     msgEditorSocket.onopen = () => {
         console.log('Websocket connection opened to edit messages')
     }

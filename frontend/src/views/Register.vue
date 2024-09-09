@@ -7,7 +7,7 @@ import { ref } from 'vue';
 let username = ''
 let password = ''
 const formError = ref('')
-
+const baseUrl = import.meta.env.VITE_BACK_BASE_URL
 async function registerUser() {
   if (username.length > 12) {
     formError.value = 'Username must contain 12 characters or fewer'
@@ -16,7 +16,7 @@ async function registerUser() {
   } else {
     await axios({
       method: 'post',
-      url: 'http://localhost:8000/signup',
+      url: `${baseUrl}/signup`,
       data: {
         name: username,
         password: password

@@ -26,7 +26,7 @@ func (a *App) InitServer() error {
 	// New client and server connection
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(os.Getenv("ATLAS_URI")).SetServerAPIOptions(serverAPI)
-	ctx, cancelCtx := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancelCtx := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancelCtx()
 	var err error
 	a.client, err = mongo.Connect(ctx, opts)
@@ -54,8 +54,8 @@ func (a *App) InitServer() error {
 func (a *App) routing(h *handler, wsh *ws.WSHandler) {
 	a.router = chi.NewRouter()
 	a.router.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"http://localhost:8100"},
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
+		AllowedOrigins: []string{os.Getenv("FRONT_URL")},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders: []string{"Link"},
 		MaxAge:         1800,
@@ -94,7 +94,7 @@ func (a *App) routing(h *handler, wsh *ws.WSHandler) {
 }
 
 func (a *App) Run() error {
-	return http.ListenAndServe(":8000", a.router)
+	return http.ListenAndServe(":"+os.Getenv("PORT"), a.router)
 }
 
 func (a *App) ShutdownConn() {

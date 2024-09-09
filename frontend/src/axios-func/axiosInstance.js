@@ -2,7 +2,7 @@ import axios from 'axios'
 import { renewToken } from './calls'
 
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:8000'
+    baseURL: import.meta.env.VITE_BACK_BASE_URL
 })
 
 axiosInstance.interceptors.request.use(

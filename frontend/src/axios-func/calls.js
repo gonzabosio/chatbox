@@ -77,11 +77,12 @@ export const deleteMessage = (msgId) => axiosInstance({
     console.log(err.response.data.error)
 })
 
+const baseUrl = import.meta.env.VITE_BACK_BASE_URL
 // SESSION METHODS
 export const renewToken = () => {
     return axios({
         method: 'post',
-        url: `http://localhost:8000/token/renew/${localStorage.getItem("session-id")}`,
+        url: `${baseUrl}/token/renew/${localStorage.getItem("session-id")}`,
     }).then(res => {
         localStorage.setItem('access-token', res.data.access_token)
         console.log(res.data.message)
@@ -96,13 +97,13 @@ export const renewToken = () => {
 
 export const logout = () => axios({
     method: 'post',
-    url: `http://localhost:8000/token/revoke/${localStorage.getItem('session-id')}`,
+    url: `${baseUrl}/token/revoke/${localStorage.getItem('session-id')}`,
 }).then(res => {
     if (res.status === 204) {
         console.log('Refresh token revoked')
         axios({
             method: 'delete',
-            url: `http://localhost:8000/logout/${localStorage.getItem('session-id')}`
+            url: `${baseUrl}/logout/${localStorage.getItem('session-id')}`
         }).then(res => {
             console.log(res.data.message)
             localStorage.clear()
