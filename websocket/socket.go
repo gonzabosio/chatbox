@@ -26,23 +26,28 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
+var clientsToSend = make(map[*websocket.Conn]bool)
+var broadcastToSend = make(chan *models.Message)
+
 func (h *WSHandler) SendMsgWS(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("Could not upgrade to ws prot: ", err)
+		log.Println("Could not upgrade to websocket connection: ", err)
 		return
 	}
 	defer c.Close()
+	// Add a new connected client
+	clientsToSend[c] = true
 
 	for {
 		_, msg, err := c.ReadMessage()
 		if err != nil {
+			delete(clientsToSend, c)
 			c.WriteJSON(map[string]string{
 				"message": "Could not read message to send",
 				"error":   err.Error(),
 			})
 		}
-		log.Println(string(msg))
 
 		var body *models.Message
 		if err = json.Unmarshal(msg, &body); err != nil {
@@ -51,24 +56,26 @@ func (h *WSHandler) SendMsgWS(w http.ResponseWriter, r *http.Request) {
 				"error":   err.Error(),
 			})
 		}
-		log.Println(body)
 
 		newMsg, err := h.service.SendMessages(body)
 		if err != nil {
 			c.WriteJSON(map[string]string{
-				"message": "Could not respond save message in database",
+				"message": "Could not save message in database",
 				"error":   err.Error(),
 			})
 		}
-
-		if err = c.WriteJSON(&newMsg); err != nil {
-			c.WriteJSON(map[string]string{
-				"message": "Could not respond with sent message",
-				"error":   err.Error(),
-			})
-		}
+		// Call response handler
+		broadcastToSend <- newMsg
 	}
 }
+
+type editMsgReq struct {
+	MessageID  string `json:"message_id"`
+	NewMessage string `json:"new_message"`
+}
+
+var clientsToEdit = make(map[*websocket.Conn]bool)
+var broadcastToEdit = make(chan *models.Message)
 
 func (h *WSHandler) EditMsgWS(w http.ResponseWriter, r *http.Request) {
 	c, err := upgrader.Upgrade(w, r, nil)
@@ -77,19 +84,17 @@ func (h *WSHandler) EditMsgWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer c.Close()
-	type editMsgReq struct {
-		MessageID  string `json:"message_id"`
-		NewMessage string `json:"new_message"`
-	}
+	clientsToEdit[c] = true
+
 	for {
 		_, msg, err := c.ReadMessage()
 		if err != nil {
+			delete(clientsToEdit, c)
 			c.WriteJSON(map[string]string{
 				"message": "Could not read message update request",
 				"error":   err.Error(),
 			})
 		}
-		log.Println(string(msg))
 
 		var body *editMsgReq
 		if err = json.Unmarshal(msg, &body); err != nil {
@@ -98,7 +103,6 @@ func (h *WSHandler) EditMsgWS(w http.ResponseWriter, r *http.Request) {
 				"error":   err.Error(),
 			})
 		}
-		log.Println(body)
 
 		newMsg, err := h.service.EditMessage(body.MessageID, body.NewMessage)
 		if err != nil {
@@ -107,11 +111,38 @@ func (h *WSHandler) EditMsgWS(w http.ResponseWriter, r *http.Request) {
 				"error":   err.Error(),
 			})
 		}
-		if err = c.WriteJSON(&newMsg); err != nil {
-			c.WriteJSON(map[string]string{
-				"message": "Could not respond with updated message",
-				"error":   err.Error(),
-			})
+		broadcastToEdit <- newMsg
+	}
+}
+
+func HandleWebSocketSender() {
+	for {
+		newMsg := <-broadcastToSend
+		for client := range clientsToSend {
+			if err := client.WriteJSON(&newMsg); err != nil {
+				log.Println("Error writing websocket response: ", err)
+				client.WriteJSON(map[string]string{
+					"message": err.Error(),
+				})
+				delete(clientsToSend, client)
+				client.Close()
+			}
+		}
+	}
+}
+
+func HandleWebSocketEditor() {
+	for {
+		newMsg := <-broadcastToEdit
+		for client := range clientsToEdit {
+			if err := client.WriteJSON(&newMsg); err != nil {
+				log.Println("Error writing websocket response: ", err)
+				client.WriteJSON(map[string]string{
+					"message": err.Error(),
+				})
+				delete(clientsToEdit, client)
+				client.Close()
+			}
 		}
 	}
 }

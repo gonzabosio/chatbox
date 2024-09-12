@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/gonzabosio/chat-box/api"
+	ws "github.com/gonzabosio/chat-box/websocket"
 	"github.com/joho/godotenv"
 )
 
@@ -19,6 +20,9 @@ func main() {
 	if err := app.InitServer(); err != nil {
 		log.Fatalf("Could not start server instance: %v", err)
 	}
+
+	go ws.HandleWebSocketSender()
+	go ws.HandleWebSocketEditor()
 
 	go func() {
 		if err := app.Run(); err != nil {
