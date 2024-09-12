@@ -11,11 +11,12 @@ let chat = {}
 const emit = defineEmits(['chatsUpdated'])
 const errorMsg = ref('')
 const handleAddClick = async () => {
-    if (newChat !== '') {
+    if (newChat.value !== '') {
         try {
             chat = await addChat(newChat.value, props.name)
             sendNewChatList(chat)
             newChat = ''
+            errorMsg.value = ''
             return true
         }
         catch (err) {
@@ -29,7 +30,7 @@ const handleAddClick = async () => {
             return false
         }
     } else {
-        errorMsg.value = 'Invalid user'
+        errorMsg.value = 'Username field is empty'
     }
 }
 const sendNewChatList = (chat) => {
@@ -53,7 +54,7 @@ const sendNewChatList = (chat) => {
                 <p>{{ errorMsg }}</p>
                 <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn text="Cancel" @click="isActive.value = false, newChat = ''"></v-btn>
+                    <v-btn text="Cancel" @click="isActive.value = false, newChat = '', errorMsg = ''"></v-btn>
                     <v-btn class="btn-add" text="Add" @click="async () => {
                         let closeDialog = await handleAddClick()
                         closeDialog ? isActive.value = false : null

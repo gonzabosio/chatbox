@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
 import { deleteMessage, loadMessages } from '../../axios-func/calls'
 import EditMessageDialog from './EditMessageDialog.vue';
 
@@ -14,8 +14,10 @@ const message = ref('')
 let msgSenderSocket
 let msgEditorSocket
 const wsUrl = import.meta.env.VITE_WS_URL
+
 onMounted(async () => {
     messages.value = await loadMessages(props.chatId)
+    scrollToBottom();
     // Message Sender WebSocket
     msgSenderSocket = new WebSocket(`${wsUrl}/send-msg?wsauth=${localStorage.getItem('access-token')}`)
     msgSenderSocket.onopen = () => {
@@ -32,6 +34,7 @@ onMounted(async () => {
         } else {
             messages.value.push(JSON.parse(event.data))
         }
+        scrollToBottom()
     }
     msgSenderSocket.onclose = () => {
         console.log('Websocket connection closed')
@@ -70,6 +73,15 @@ const sendMsg = () => {
     }
 }
 
+const messagesContainer = ref(null)
+const scrollToBottom = () => {
+    nextTick(() => {
+        if (messagesContainer.value) {
+            messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+        }
+    })
+}
+
 let msgIndex = ''
 const putMessage = (msgId, newMsg) => {
     const msgUpdate = {
@@ -84,7 +96,7 @@ const deleteMsg = async (msgId, index) => {
     messages.value.splice(index, 1)[0]
 }
 
-onBeforeUnmount(() => {
+onUnmounted(() => {
     msgSenderSocket.close()
     msgEditorSocket.close()
 })
@@ -97,7 +109,7 @@ onBeforeUnmount(() => {
             <h2>{{ props.chatName }}</h2>
             <hr>
         </div>
-        <div class="messages">
+        <div class="messages" ref="messagesContainer">
             <div v-for="(item, index) in messages" :key="index">
                 <div :class="[item.sender_id === props.userId ? 'sent' : 'received']">
                     <div class="sub-msg-container">
@@ -114,8 +126,8 @@ onBeforeUnmount(() => {
             </div>
         </div>
         <div id="message-field">
-            <input type="text" v-model="message">
-            <button @click="sendMsg" id="send"><img src="../../assets/send.svg" alt=""></button>
+            <input type="text" v-model="message" @keyup.enter="sendMsg">
+            <button @click="sendMsg" id="send"><img src="../../assets/send.svg" alt="send"></button>
         </div>
     </div>
 </template>
@@ -141,7 +153,7 @@ onBeforeUnmount(() => {
 
 .messages {
     flex-grow: 1;
-    overflow-y: auto;
+    overflow-y: scroll;
     scrollbar-width: thin;
     scrollbar-color: #85c3cf transparent;
     padding-top: 16px;

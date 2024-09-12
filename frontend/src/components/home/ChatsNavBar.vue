@@ -95,7 +95,7 @@ const setId = (id, chatname) => {
 @media (max-width: 768px) {
     #content {
         width: 100%;
-        max-width: 200px;
+        max-width: 180px;
     }
 }
 

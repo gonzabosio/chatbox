@@ -30,6 +30,8 @@ async function userLogin() {
 			localStorage.setItem('session-id', res.data.session_id)
 			router.push('/home')
 		}).catch(err => {
+			username = ''
+			password = ''
 			console.log('Login failed: ' + err.response.data.message)
 			console.log('Error details: ' + err.response.data.error)
 			formError.value = err.response.data.message

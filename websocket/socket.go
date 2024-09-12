@@ -47,6 +47,7 @@ func (h *WSHandler) SendMsgWS(w http.ResponseWriter, r *http.Request) {
 				"message": "Could not read message to send",
 				"error":   err.Error(),
 			})
+			break
 		}
 
 		var body *models.Message
@@ -55,6 +56,7 @@ func (h *WSHandler) SendMsgWS(w http.ResponseWriter, r *http.Request) {
 				"message": "Could not unmarshal request body",
 				"error":   err.Error(),
 			})
+			break
 		}
 
 		newMsg, err := h.service.SendMessages(body)
@@ -63,6 +65,7 @@ func (h *WSHandler) SendMsgWS(w http.ResponseWriter, r *http.Request) {
 				"message": "Could not save message in database",
 				"error":   err.Error(),
 			})
+			break
 		}
 		// Call response handler
 		broadcastToSend <- newMsg
@@ -94,6 +97,7 @@ func (h *WSHandler) EditMsgWS(w http.ResponseWriter, r *http.Request) {
 				"message": "Could not read message update request",
 				"error":   err.Error(),
 			})
+			break
 		}
 
 		var body *editMsgReq
@@ -102,6 +106,7 @@ func (h *WSHandler) EditMsgWS(w http.ResponseWriter, r *http.Request) {
 				"message": "Could not unmarshal request body",
 				"error":   err.Error(),
 			})
+			break
 		}
 
 		newMsg, err := h.service.EditMessage(body.MessageID, body.NewMessage)
@@ -110,6 +115,7 @@ func (h *WSHandler) EditMsgWS(w http.ResponseWriter, r *http.Request) {
 				"message": "Could not edit message",
 				"error":   err.Error(),
 			})
+			break
 		}
 		broadcastToEdit <- newMsg
 	}

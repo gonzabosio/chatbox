@@ -96,12 +96,11 @@ func (h *handler) signUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, map[string]interface{}{
-		"message":       "User added successfully",
-		"session_id":    session.ID,
-		"access_token":  accessToken,
-		"access_exp":    accessClaims.ExpiresAt.Time,
-		"refresh_token": refreshToken,
-		"refresh_exp":   refreshClaims.ExpiresAt.Time,
+		"message":      "User added successfully",
+		"session_id":   session.ID,
+		"access_token": accessToken,
+		"access_exp":   accessClaims.ExpiresAt.Time,
+		"refresh_exp":  refreshClaims.ExpiresAt.Time,
 		"user": map[string]interface{}{
 			"id":   res.InsertedID,
 			"name": user.Name,
@@ -165,12 +164,11 @@ func (h *handler) signIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondJSON(w, http.StatusOK, map[string]interface{}{
-		"message":       "User logged successfully",
-		"session_id":    session.ID,
-		"access_token":  accessToken,
-		"access_exp":    accessClaims.ExpiresAt.Time,
-		"refresh_token": refreshToken,
-		"refresh_exp":   refreshClaims.ExpiresAt.Time,
+		"message":      "User logged successfully",
+		"session_id":   session.ID,
+		"access_token": accessToken,
+		"access_exp":   accessClaims.ExpiresAt.Time,
+		"refresh_exp":  refreshClaims.ExpiresAt.Time,
 		"user": map[string]interface{}{
 			"id":   dbUser.ID,
 			"name": dbUser.Name,

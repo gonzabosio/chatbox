@@ -64,6 +64,7 @@ func (a *App) routing(h *handler, wsh *ws.WSHandler) {
 	a.router.Use(middleware.Logger)
 	a.router.Group(func(r chi.Router) {
 		r.Use(httprate.LimitByIP(10, 1*time.Minute))
+		r.Head("/health", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 		r.Post("/signup", h.signUp)
 		r.Post("/signin", h.signIn)
 		r.Delete("/logout/{session-id}", h.logout)
