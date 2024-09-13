@@ -35,15 +35,15 @@ func (h *handler) addChat(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	id, err := h.service.AddChat(&contact)
+	newChat, err := h.service.AddChat(&contact)
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{"message": err.Error()})
 		return
 	}
 	respondJSON(w, http.StatusOK, map[string]interface{}{
 		"message": "Chat added successfully",
+		"chat":    newChat,
 		"contact": contact,
-		"chat_id": id,
 	})
 }
 
@@ -74,55 +74,6 @@ func (h *handler) loadMessages(w http.ResponseWriter, r *http.Request) {
 		"message":  "Messages loaded",
 		"messages": messages,
 	})
-}
-
-func (h *handler) sendMessage(w http.ResponseWriter, r *http.Request) {
-	bodyReq := new(models.Message)
-	err := json.NewDecoder(r.Body).Decode(&bodyReq)
-	if err != nil {
-		respondJSON(w, http.StatusBadRequest, map[string]string{
-			"message": "Could not read body request to send message",
-			"error":   err.Error(),
-		})
-		return
-	}
-	err = h.service.SendMessages(bodyReq)
-	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{
-			"message": "Could not send the message",
-			"error":   err.Error(),
-		})
-		return
-	}
-	respondJSON(w, http.StatusOK, map[string]interface{}{
-		"message": "Message was sent",
-		"data":    bodyReq,
-	})
-}
-
-func (h *handler) editMessage(w http.ResponseWriter, r *http.Request) {
-	type EditBodyReq struct {
-		MessageID  string `json:"message_id"`
-		NewMessage string `json:"new_message"`
-	}
-	bodyReq := new(EditBodyReq)
-	err := json.NewDecoder(r.Body).Decode(&bodyReq)
-	if err != nil {
-		respondJSON(w, http.StatusBadRequest, map[string]string{
-			"message": "Could not read body request to edit the message",
-			"error":   err.Error(),
-		})
-		return
-	}
-	err = h.service.EditMessage(bodyReq.MessageID, bodyReq.NewMessage)
-	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{
-			"message": "Could not edit message",
-			"error":   err.Error(),
-		})
-		return
-	}
-	respondJSON(w, http.StatusOK, map[string]string{"message": "Message edited"})
 }
 
 func (h *handler) deleteMessage(w http.ResponseWriter, r *http.Request) {

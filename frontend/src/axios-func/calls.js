@@ -39,11 +39,10 @@ export const addChat = (newChat, name) => axiosInstance(({
     }
 })).then(async res => {
     console.log(res.data.message)
-    return await loadChats()
+    return res.data.chat
 }).catch(err => {
     console.log(err.response.data.message)
-    console.log(err.response.data.error)
-    return
+    throw err
 })
 
 export const loadMessages = (chatId) => axiosInstance({
@@ -58,21 +57,6 @@ export const loadMessages = (chatId) => axiosInstance({
     return []
 })
 
-export const sendMessage = (chatId, userId, text) => axiosInstance({
-    method: 'post',
-    url: '/chat/send-message',
-    data: {
-        chat_id: chatId,
-        sender_id: userId,
-        content: text
-    }
-}).then(res => {
-    console.log(res.data.message)
-}).catch(err => {
-    console.log(err.response.data.message)
-    console.log(err.response.data.error)
-})
-
 export const deleteChat = (chatId) => axiosInstance({
     method: 'delete',
     url: `/chat/delete/${chatId}`
@@ -83,11 +67,22 @@ export const deleteChat = (chatId) => axiosInstance({
     console.log(err.response.data.message)
 })
 
+export const deleteMessage = (msgId) => axiosInstance({
+    method: 'delete',
+    url: `/chat/delete-message/${msgId}`
+}).then((res) => {
+    console.log(res.data.message)
+}).catch(err => {
+    console.log(err.response.data.message)
+    console.log(err.response.data.error)
+})
+
+const baseUrl = import.meta.env.VITE_BACK_BASE_URL
 // SESSION METHODS
 export const renewToken = () => {
     return axios({
         method: 'post',
-        url: `http://localhost:8000/token/renew/${localStorage.getItem("session-id")}`,
+        url: `${baseUrl}/token/renew/${localStorage.getItem("session-id")}`,
     }).then(res => {
         localStorage.setItem('access-token', res.data.access_token)
         console.log(res.data.message)
@@ -102,13 +97,13 @@ export const renewToken = () => {
 
 export const logout = () => axios({
     method: 'post',
-    url: `http://localhost:8000/token/revoke/${localStorage.getItem('session-id')}`,
+    url: `${baseUrl}/token/revoke/${localStorage.getItem('session-id')}`,
 }).then(res => {
     if (res.status === 204) {
         console.log('Refresh token revoked')
         axios({
             method: 'delete',
-            url: `http://localhost:8000/logout/${localStorage.getItem('session-id')}`
+            url: `${baseUrl}/logout/${localStorage.getItem('session-id')}`
         }).then(res => {
             console.log(res.data.message)
             localStorage.clear()

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/gonzabosio/chat-box/models"
@@ -13,11 +14,11 @@ import (
 
 type ChatRepository interface {
 	LoadChats(userId string) ([]models.Chat, error)
-	AddContact(contact *models.Contact) error
-	DeleteContact(chatId string) error
-	SendMessages(msgReq *models.Message) error
+	AddChat(contact *models.Contact) (*models.Chat, error)
+	DeleteChat(chatId string) error
+	SendMessages(msgReq *models.Message) (*models.Message, error)
 	LoadMessages(chatId string) ([]models.Message, error)
-	EditMessage(msgId string) error
+	EditMessage(msgId, newMsg string) (*models.Message, error)
 	DeleteMessage(msgId string) error
 }
 
@@ -42,13 +43,13 @@ func (ms *MongoDBService) LoadChats(userId string) (chats []models.Chat, err err
 	return chats, nil
 }
 
-func (ms *MongoDBService) AddChat(contact *models.Contact) (interface{}, error) {
+func (ms *MongoDBService) AddChat(contact *models.Contact) (*models.Chat, error) {
 	var newContact models.User
 	coll := ms.DB.Collection("users")
 	filter := bson.D{{Key: "name", Value: contact.Username}}
 	err := coll.FindOne(context.TODO(), filter).Decode(&newContact)
 	if err != nil {
-		return nil, fmt.Errorf("could not found the contact: %v", err)
+		return nil, err
 	}
 
 	coll = ms.DB.Collection("chats")
@@ -76,7 +77,10 @@ func (ms *MongoDBService) AddChat(contact *models.Contact) (interface{}, error) 
 	if err != nil {
 		return nil, err
 	}
-	return res.InsertedID, nil
+	//response with chat document to show it in frontend
+	newChat := &models.Chat{}
+	coll.FindOne(context.TODO(), bson.D{{Key: "_id", Value: res.InsertedID}}).Decode(&newChat)
+	return newChat, nil
 }
 
 func (ms *MongoDBService) DeleteChat(chatId string) error {
@@ -87,6 +91,12 @@ func (ms *MongoDBService) DeleteChat(chatId string) error {
 	}
 	filter := bson.D{{Key: "_id", Value: id}}
 	_, err = coll.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		return err
+	}
+	coll = ms.DB.Collection("messages")
+	filter = bson.D{{Key: "chat_id", Value: chatId}}
+	_, err = coll.DeleteMany(context.TODO(), filter)
 	if err != nil {
 		return err
 	}
@@ -108,29 +118,38 @@ func (ms *MongoDBService) LoadMessages(chatId string) ([]models.Message, error) 
 	return mesagges, nil
 }
 
-func (ms *MongoDBService) SendMessages(msgReq *models.Message) error {
+func (ms *MongoDBService) SendMessages(msgReq *models.Message) (*models.Message, error) {
 	msgReq.SentAt = time.Now()
 	coll := ms.DB.Collection("messages")
-	_, err := coll.InsertOne(context.TODO(), msgReq)
+	res, err := coll.InsertOne(context.TODO(), msgReq)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	var newMsg *models.Message
+	coll.FindOne(context.TODO(), bson.D{{Key: "_id", Value: res.InsertedID}}).Decode(&newMsg)
+	return newMsg, nil
 }
 
-func (ms *MongoDBService) EditMessage(msgId, newMsg string) error {
+func (ms *MongoDBService) EditMessage(msgId, newMsg string) (*models.Message, error) {
 	coll := ms.DB.Collection("messages")
 	id, err := primitive.ObjectIDFromHex(msgId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	filter := bson.D{{Key: "_id", Value: id}}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "content", Value: newMsg}}}}
 	_, err = coll.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	var newMsgObj *models.Message
+	messageId, err := primitive.ObjectIDFromHex(msgId)
+	if err != nil {
+		return nil, err
+	}
+	coll.FindOne(context.TODO(), bson.D{{Key: "_id", Value: messageId}}).Decode(&newMsgObj)
+	log.Println(newMsgObj)
+	return newMsgObj, nil
 }
 
 func (ms *MongoDBService) DeleteMessage(msgId string) error {
