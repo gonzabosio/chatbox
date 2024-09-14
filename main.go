@@ -23,6 +23,7 @@ func main() {
 
 	go ws.HandleWebSocketSender()
 	go ws.HandleWebSocketEditor()
+	go ws.HandleWebSocketDelete()
 
 	go func() {
 		if err := app.Run(); err != nil {

@@ -1,6 +1,6 @@
 <script setup>
-import { nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
-import { deleteMessage, loadMessages } from '../../axios-func/calls'
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { loadMessages } from '../../axios-func/calls'
 import EditMessageDialog from './EditMessageDialog.vue';
 
 const props = defineProps({
@@ -13,6 +13,7 @@ const messages = ref([])
 const message = ref('')
 let msgSenderSocket
 let msgEditorSocket
+let msgDeleteSocket
 const wsUrl = import.meta.env.VITE_WS_URL
 
 onMounted(async () => {
@@ -45,12 +46,27 @@ onMounted(async () => {
         console.log('Websocket connection opened to edit messages')
     }
     msgEditorSocket.onerror = (err) => {
-        console.log('Websocket error: ' + err)
+        console.log('Websocket error: ' + err.value)
     }
     msgEditorSocket.onmessage = (event) => {
         messages.value.splice(msgIndex, 1, JSON.parse(event.data))
     }
     msgEditorSocket.onclose = () => {
+        console.log('Websocket connection closed')
+    }
+    // Delete Message WebSocket
+    msgDeleteSocket = new WebSocket(`${wsUrl}/del-msg?wsauth=${localStorage.getItem('access-token')}`)
+    msgDeleteSocket.onopen = () => {
+        console.log('Websocket connection opened to delete messages')
+    }
+    msgDeleteSocket.onerror = (err) => {
+        console.log('Websocket error: ' + err.value)
+    }
+    msgDeleteSocket.onmessage = (event, index) => {
+        console.log(event.data)
+        messages.value.splice(index, 1)[0]
+    }
+    msgDeleteSocket.onclose = () => {
         console.log('Websocket connection closed')
     }
 })
@@ -92,13 +108,14 @@ const putMessage = (msgId, newMsg) => {
 }
 
 const deleteMsg = async (msgId, index) => {
-    await deleteMessage(msgId)
-    messages.value.splice(index, 1)[0]
+    await msgDeleteSocket.send(msgId, index)
+
 }
 
 onUnmounted(() => {
     msgSenderSocket.close()
     msgEditorSocket.close()
+    msgDeleteSocket.close()
 })
 
 </script>

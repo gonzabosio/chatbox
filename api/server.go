@@ -82,15 +82,15 @@ func (a *App) routing(h *handler, wsh *ws.WSHandler) {
 			r.Put("/save-personal/{id}", h.saveUserPersonalData)
 		})
 		r.Route("/chat", func(r chi.Router) {
-			r.Get("/load/{user-id}", h.loadChats)
-			r.Post("/add", h.addChat)
-			r.Delete("/delete/{chat-id}", h.deleteChat)
-			r.Get("/load-messages/{chat-id}", h.loadMessages)
-			r.Delete("/delete-message/{msg-id}", h.deleteMessage)
+			r.Get("/{user-id}", h.loadChats)
+			r.Post("/", h.addChat)
+			r.Delete("/{chat-id}", h.deleteChat)
+			r.Get("/{chat-id}/messages", h.loadMessages)
 		})
 		a.router.Route("/ws", func(r chi.Router) {
 			r.HandleFunc("/send-msg", wsh.SendMsgWS)
 			r.HandleFunc("/edit-msg", wsh.EditMsgWS)
+			r.HandleFunc("/del-msg", wsh.DeleteMsgWS)
 		})
 	})
 }

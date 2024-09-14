@@ -121,6 +121,41 @@ func (h *WSHandler) EditMsgWS(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+var clientsToDelete = make(map[*websocket.Conn]bool)
+var broadcastToDelete = make(chan string)
+
+func (h *WSHandler) DeleteMsgWS(w http.ResponseWriter, r *http.Request) {
+	c, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("Could not upgrade to ws prot: ", err)
+		return
+	}
+	defer c.Close()
+	clientsToDelete[c] = true
+
+	for {
+		_, msgID, err := c.ReadMessage()
+		if err != nil {
+			delete(clientsToDelete, c)
+			c.WriteJSON(map[string]string{
+				"message": "Bad request to delete message",
+				"error":   err.Error(),
+			})
+			break
+		}
+		id := string(msgID)
+		err = h.service.DeleteMessage(id)
+		if err != nil {
+			c.WriteJSON(map[string]string{
+				"message": "Could not delete message from db",
+				"error":   err.Error(),
+			})
+			break
+		}
+		broadcastToDelete <- id
+	}
+}
+
 func HandleWebSocketSender() {
 	for {
 		newMsg := <-broadcastToSend
@@ -147,6 +182,25 @@ func HandleWebSocketEditor() {
 					"message": err.Error(),
 				})
 				delete(clientsToEdit, client)
+				client.Close()
+			}
+		}
+	}
+}
+
+func HandleWebSocketDelete() {
+	for {
+		id := <-broadcastToDelete
+		for client := range clientsToDelete {
+			if err := client.WriteJSON(map[string]string{
+				"message":    "Message deleted successfully",
+				"message_id": id,
+			}); err != nil {
+				log.Println("Error writing websocket response:", err)
+				client.WriteJSON(map[string]string{
+					"message": err.Error(),
+				})
+				delete(clientsToDelete, client)
 				client.Close()
 			}
 		}
