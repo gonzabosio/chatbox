@@ -15,6 +15,23 @@ export const getUserInfo = async () => await axiosInstance({
     return {}
 })
 
+export const savePersonalData = (pEmail, pAge, pCountry) => axiosInstance({
+    method: 'put',
+    url: `/user/save-personal/${localStorage.getItem('user-id')}`,
+    data: {
+        email: pEmail,
+        country: pCountry,
+        age: pAge
+    }
+}).then(res => {
+    console.log(pAge, pCountry, pEmail)
+    console.log('Personal data saved')
+    return res.status
+}).catch(err => {
+    console.log('Failed save personal data')
+    return err.response.status
+})
+
 // FOR CHAT COMPONENTS
 export const loadChats = () => axiosInstance({
     method: 'get',
@@ -29,7 +46,7 @@ export const loadChats = () => axiosInstance({
     return []
 })
 
-export const addChat = (newChat, name) => axiosInstance(({
+export const addChat = (newChat, name) => axiosInstance({
     method: 'post',
     url: '/chat/add',
     data: {
@@ -37,7 +54,7 @@ export const addChat = (newChat, name) => axiosInstance(({
         petitioner_id: localStorage.getItem('user-id'),
         petitioner: name
     }
-})).then(async res => {
+}).then(async res => {
     console.log(res.data.message)
     return res.data.chat
 }).catch(err => {

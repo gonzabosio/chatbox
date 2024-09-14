@@ -79,6 +79,7 @@ func (a *App) routing(h *handler, wsh *ws.WSHandler) {
 		r.Use(httprate.LimitByIP(50, 1*time.Minute))
 		r.Route("/user", func(r chi.Router) {
 			r.Get("/{id}", h.getUserDataById)
+			r.Put("/save-personal/{id}", h.saveUserPersonalData)
 		})
 		r.Route("/chat", func(r chi.Router) {
 			r.Get("/load/{user-id}", h.loadChats)

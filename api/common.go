@@ -63,11 +63,11 @@ func connectLocalMongoT(app *App) error {
 }
 
 func buildPostRequestT(body *models.User, endpoint string) (*http.Request, error) {
-	bodyReq, err := json.Marshal(body)
+	reqBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(bodyReq))
+	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return nil, err
 	}

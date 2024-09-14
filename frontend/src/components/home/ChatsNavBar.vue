@@ -30,21 +30,24 @@ const refreshChatList = (newChat) => {
 const chatListAfterDelete = async () => {
     chats.value = await loadChats()
 }
-const emit = defineEmits(['chatSelected'])
+const emit = defineEmits(['chatSelected', 'goProfile'])
 
 const setId = (id, chatname) => {
     emit('chatSelected', id, chatname)
+}
+const openProfile = () => {
+    emit('goProfile')
 }
 </script>
 
 <template>
     <div id="content">
         <div id="top">
-            <div id="user-registered">
-                <img src="../../assets/user.svg" alt="">
+            <button @click="openProfile" id="profile-btn">
+                <img src="../../assets/user.svg" alt="profile">
                 <p>{{ props.username }}</p>
-            </div>
-            <button @click="logout" id="logout-btn"><img src="../../assets/logout.svg" alt=""></button>
+            </button>
+            <button @click="logout" id="logout-btn"><img src="../../assets/logout.svg" alt="logout"></button>
         </div>
         <hr>
         <div id="chat-header">
@@ -105,11 +108,11 @@ const setId = (id, chatname) => {
     align-items: center;
 }
 
-#user-registered {
+#profile-btn {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 80px;
+    width: auto;
 
     img {
         margin-right: 4px;
@@ -118,6 +121,16 @@ const setId = (id, chatname) => {
     p {
         font-size: 18px;
     }
+
+    background-color: #7a7d8477;
+    transition: 0.2s;
+
+    &:hover {
+        background-color: #7a7d84;
+    }
+
+    border: none;
+    border-radius: 9px;
 }
 
 #chat-card {

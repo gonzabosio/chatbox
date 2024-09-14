@@ -33,12 +33,12 @@ func TestSignUp(t *testing.T) {
 		response := executeRequestT(req, app.router)
 		checkResponseCodeT(t, http.StatusBadRequest, response.Code)
 
-		var bodyResp map[string]interface{}
-		err = json.Unmarshal(response.Body.Bytes(), &bodyResp)
+		var respBody map[string]interface{}
+		err = json.Unmarshal(response.Body.Bytes(), &respBody)
 		if err != nil {
 			t.Fatal(err)
 		}
-		require.Equal(t, "username already exists", bodyResp["error"])
+		require.Equal(t, "username already exists", respBody["error"])
 	})
 	t.Run("Assert equal if user is added successfully", func(t *testing.T) {
 		body := &models.User{
@@ -52,12 +52,12 @@ func TestSignUp(t *testing.T) {
 		response := executeRequestT(req, app.router)
 		checkResponseCodeT(t, http.StatusOK, response.Code)
 
-		var bodyResp map[string]interface{}
-		err = json.Unmarshal(response.Body.Bytes(), &bodyResp)
+		var respBody map[string]interface{}
+		err = json.Unmarshal(response.Body.Bytes(), &respBody)
 		if err != nil {
 			t.Fatal(err)
 		}
-		require.Equal(t, "User added successfully", bodyResp["message"])
+		require.Equal(t, "User added successfully", respBody["message"])
 	})
 	defer app.client.Disconnect(context.TODO())
 }
@@ -83,12 +83,12 @@ func TestSignIn(t *testing.T) {
 		response := executeRequestT(req, app.router)
 		checkResponseCodeT(t, http.StatusUnauthorized, response.Code)
 
-		var bodyResp map[string]interface{}
-		err = json.Unmarshal(response.Body.Bytes(), &bodyResp)
+		var respBody map[string]interface{}
+		err = json.Unmarshal(response.Body.Bytes(), &respBody)
 		if err != nil {
 			t.Fatal(err)
 		}
-		require.Equal(t, "Invalid or non-existent user", bodyResp["message"])
+		require.Equal(t, "Invalid or non-existent user", respBody["message"])
 	})
 	t.Run("Assert equal if user logged successfully", func(t *testing.T) {
 		body := &models.User{
@@ -102,11 +102,11 @@ func TestSignIn(t *testing.T) {
 		response := executeRequestT(req, app.router)
 		checkResponseCodeT(t, http.StatusOK, response.Code)
 
-		var bodyResp map[string]interface{}
-		err = json.Unmarshal(response.Body.Bytes(), &bodyResp)
+		var respBody map[string]interface{}
+		err = json.Unmarshal(response.Body.Bytes(), &respBody)
 		if err != nil {
 			t.Fatal(err)
 		}
-		require.Equal(t, "User logged successfully", bodyResp["message"])
+		require.Equal(t, "User logged successfully", respBody["message"])
 	})
 }
