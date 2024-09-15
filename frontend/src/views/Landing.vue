@@ -11,13 +11,11 @@ onBeforeMount(() => {
 
 <template>
 	<div id="container">
-		<div>
+		<div id="left-content">
 			<h1>Chat<span id="box-word">Box</span></h1>
-			<h3>Fullstack Chat Application made with Go and Vue</h3>
-			<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-				dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip
-				ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-				fugiat nulla pariatur</p>
+			<h3 style="font-style: italic;">Your Secure and Simple Way to Stay Connected</h3>
+			<p>Stay in touch with your friends, family, and colleagues with a fast,
+				reliable, and easy-to-use messaging platform designed to keep you connected at all times.</p>
 		</div>
 		<img src="../assets/chat_landing_draw.svg" alt="chat-draw" width="400">
 	</div>
@@ -27,9 +25,10 @@ onBeforeMount(() => {
 #container {
 	display: flex;
 	align-items: center;
-	justify-content: space-around;
+	justify-content: center;
 	margin: 60px auto;
 	max-width: 1100px;
+	padding: 18px;
 }
 
 #container h1 {
@@ -45,11 +44,12 @@ onBeforeMount(() => {
 #container img {
 	width: 100%;
 	max-width: 400px;
-	margin-top: 45px;
+	margin-top: 40px;
 }
 
 #container p {
 	margin-right: 10px;
+	margin-bottom: 30px;
 	color: darkgray;
 	line-height: 24px;
 }
