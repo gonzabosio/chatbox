@@ -75,16 +75,3 @@ func (h *handler) loadMessages(w http.ResponseWriter, r *http.Request) {
 		"messages": messages,
 	})
 }
-
-func (h *handler) deleteMessage(w http.ResponseWriter, r *http.Request) {
-	msgId := chi.URLParam(r, "msg-id")
-	err := h.service.DeleteMessage(msgId)
-	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{
-			"message": "Could not delete message",
-			"error":   err.Error(),
-		})
-		return
-	}
-	respondJSON(w, http.StatusOK, map[string]string{"message": "Message deleted"})
-}

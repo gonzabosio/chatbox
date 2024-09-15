@@ -18,7 +18,8 @@ type MongoDBService struct {
 type UserRepository interface {
 	RegisterUser(user *models.User) (*mongo.InsertOneResult, error)
 	LoginUser(user *models.User) (*models.User, error)
-	GetUserById(user *models.User, id primitive.ObjectID) error
+	GetUserById(user *models.UserDataResponse, id primitive.ObjectID) error
+	SaveUserPersonalDataDB(userId primitive.ObjectID, personal *models.Personal) error
 }
 
 func (ms *MongoDBService) RegisterUser(user *models.User) (*mongo.InsertOneResult, error) {
@@ -51,10 +52,26 @@ func (ms *MongoDBService) LoginUser(user *models.User) (*models.User, error) {
 	return dbUser, nil
 }
 
-func (ms *MongoDBService) GetUserById(user *models.User, id primitive.ObjectID) error {
+func (ms *MongoDBService) GetUserById(user *models.UserDataResponse, id primitive.ObjectID) error {
 	filter := bson.D{{Key: "_id", Value: id}}
 	coll := ms.DB.Collection("users")
 	if err := coll.FindOne(context.TODO(), filter).Decode(&user); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ms *MongoDBService) SaveUserPersonalDataDB(userId primitive.ObjectID, personal *models.Personal) error {
+	coll := ms.DB.Collection("users")
+	update := bson.M{
+		"$set": bson.M{
+			"personal.email":   personal.Email,
+			"personal.country": personal.Country,
+			"personal.age":     personal.Age,
+		},
+	}
+	_, err := coll.UpdateByID(context.TODO(), userId, update)
+	if err != nil {
 		return err
 	}
 	return nil

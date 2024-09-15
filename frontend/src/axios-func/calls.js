@@ -15,10 +15,27 @@ export const getUserInfo = async () => await axiosInstance({
     return {}
 })
 
+export const savePersonalData = (pEmail, pAge, pCountry) => axiosInstance({
+    method: 'put',
+    url: `/user/save-personal/${localStorage.getItem('user-id')}`,
+    data: {
+        email: pEmail,
+        country: pCountry,
+        age: pAge
+    }
+}).then(res => {
+    console.log(pAge, pCountry, pEmail)
+    console.log('Personal data saved')
+    return res.status
+}).catch(err => {
+    console.log('Failed save personal data')
+    return err.response.status
+})
+
 // FOR CHAT COMPONENTS
 export const loadChats = () => axiosInstance({
     method: 'get',
-    url: `/chat/load/${localStorage.getItem('user-id')}`
+    url: `/chat/${localStorage.getItem('user-id')}`
 }).then(res => {
     console.log(res.data.chats)
     console.log(res.data.message)
@@ -29,15 +46,15 @@ export const loadChats = () => axiosInstance({
     return []
 })
 
-export const addChat = (newChat, name) => axiosInstance(({
+export const addChat = (newChat, name) => axiosInstance({
     method: 'post',
-    url: '/chat/add',
+    url: '/chat',
     data: {
         username: newChat,
         petitioner_id: localStorage.getItem('user-id'),
         petitioner: name
     }
-})).then(async res => {
+}).then(async res => {
     console.log(res.data.message)
     return res.data.chat
 }).catch(err => {
@@ -47,7 +64,7 @@ export const addChat = (newChat, name) => axiosInstance(({
 
 export const loadMessages = (chatId) => axiosInstance({
     method: 'get',
-    url: `/chat/load-messages/${chatId}`
+    url: `/chat/${chatId}/messages`
 }).then(res => {
     console.log(res.data.messages)
     return res.data.messages
@@ -59,22 +76,12 @@ export const loadMessages = (chatId) => axiosInstance({
 
 export const deleteChat = (chatId) => axiosInstance({
     method: 'delete',
-    url: `/chat/delete/${chatId}`
+    url: `/chat/${chatId}`
 }).then(res => {
     console.log(res.data.message)
 }).catch(err => {
     console.log(err.response.data.error)
     console.log(err.response.data.message)
-})
-
-export const deleteMessage = (msgId) => axiosInstance({
-    method: 'delete',
-    url: `/chat/delete-message/${msgId}`
-}).then((res) => {
-    console.log(res.data.message)
-}).catch(err => {
-    console.log(err.response.data.message)
-    console.log(err.response.data.error)
 })
 
 const baseUrl = import.meta.env.VITE_BACK_BASE_URL

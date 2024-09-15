@@ -257,12 +257,12 @@ func (h *handler) revokeSession(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) getUserDataById(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
-	dbUser := new(models.User)
 	id, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{"message": "Could not convert id to ObjectId"})
 		return
 	}
+	dbUser := new(models.UserDataResponse)
 	if err := h.service.GetUserById(dbUser, id); err != nil {
 		respondJSON(w, http.StatusInternalServerError, map[string]string{
 			"message": "Invalid or non-existent user id",
@@ -277,5 +277,26 @@ func (h *handler) getUserDataById(w http.ResponseWriter, r *http.Request) {
 			"subject":    r.Context().Value(ctxKey(claimsId)).(string),
 			"expires_at": r.Context().Value(ctxKey(expiresAt)).(string),
 		},
+	})
+}
+
+func (h *handler) saveUserPersonalData(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "id")
+	id, err := primitive.ObjectIDFromHex(idParam)
+	if err != nil {
+		respondJSON(w, http.StatusInternalServerError, map[string]string{"message": "Could not convert id to ObjectId"})
+		return
+	}
+	personal := new(models.Personal)
+	json.NewDecoder(r.Body).Decode(personal)
+	if err := h.service.SaveUserPersonalDataDB(id, personal); err != nil {
+		respondJSON(w, http.StatusInternalServerError, map[string]string{
+			"message": "Could not save extra data of user",
+			"error":   err.Error(),
+		})
+		return
+	}
+	respondJSON(w, http.StatusOK, map[string]string{
+		"message": "Personal data saved successfully",
 	})
 }
