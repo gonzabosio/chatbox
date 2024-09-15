@@ -87,15 +87,15 @@ POST /signin
 #### Response
 ```javascript
 {
-	"access_exp": "2024-09-14T02:56:28Z",
-	"access_token": "eyJhbGciOiJ...",
-	"message": "User logged successfully",
-	"refresh_exp": "2024-09-15T02:41:28Z",
-	"session_id": "5aeb2038-2e16-4ba3-85c7-672ebd6a6a5b",
-	"user": {
-		"id": "66e4f71243d2b68b40ca71ac",
-		"name": "John Doe"
-	}
+  "access_exp": "2024-09-14T02:56:28Z",
+  "access_token": "eyJhbGciOiJ...",
+  "message": "User logged successfully",
+  "refresh_exp": "2024-09-15T02:41:28Z",
+  "session_id": "5aeb2038-2e16-4ba3-85c7-672ebd6a6a5b",
+  "user": {
+    "id": "66e4f71243d2b68b40ca71ac",
+    "name": "John Doe"
+  }
 }
 ```
 <hr>
