@@ -1,0 +1,39 @@
+name: Backend
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches: 
+      - master
+      - develop
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:latest
+        ports:
+          - 27017:27017
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22.4'
+
+    - name: Wait for MongoDB to initialize
+      run: sleep 15
+      
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./api

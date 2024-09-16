@@ -20,7 +20,11 @@ func TestSignUp(t *testing.T) {
 	handler := NewHandler(app, os.Getenv("JWT_KEY"))
 	wshandler := ws.NewWSHandler(handler.service)
 	app.routing(handler, wshandler)
-
+	stored := &models.User{
+		Name:     "StoredUser",
+		Password: "54321",
+	}
+	handler.service.DB.Collection("users").InsertOne(context.TODO(), stored)
 	t.Run("Assert equal if user already exists", func(t *testing.T) {
 		body := &models.User{
 			Name:     "StoredUser",
@@ -70,7 +74,6 @@ func TestSignIn(t *testing.T) {
 	handler := NewHandler(app, os.Getenv("JWT_KEY"))
 	wshandler := ws.NewWSHandler(handler.service)
 	app.routing(handler, wshandler)
-
 	t.Run("Assert equal if invalid user", func(t *testing.T) {
 		body := &models.User{
 			Name:     "Inexistent",
@@ -92,7 +95,7 @@ func TestSignIn(t *testing.T) {
 	})
 	t.Run("Assert equal if user logged successfully", func(t *testing.T) {
 		body := &models.User{
-			Name:     "StoredUser",
+			Name:     "NewUser",
 			Password: "54321",
 		}
 		req, err := buildPostRequestT(body, "/signin")
@@ -109,4 +112,5 @@ func TestSignIn(t *testing.T) {
 		}
 		require.Equal(t, "User logged successfully", respBody["message"])
 	})
+	handler.service.DB.Collection("users").Drop(context.TODO())
 }

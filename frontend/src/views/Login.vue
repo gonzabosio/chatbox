@@ -129,10 +129,10 @@ input {
 	&:focus,
 	&:valid {
 		outline: 0;
-		border-bottom-color: #85c3cf;
+		border-bottom-color: #84bac5;
 
 		&+.input-lbl {
-			color: #85c3cf;
+			color: #84bac5;
 			transform: translateY(-1.5rem);
 		}
 	}
@@ -145,14 +145,14 @@ input {
 	margin-top: 40px;
 	width: 100%;
 	font-weight: 600;
-	background-color: #85c3cf;
+	background-color: #6dadb9;
 	border-radius: 6px;
 	border: 0;
 	cursor: pointer;
 	transition: 0.3s;
 
 	&:hover {
-		background-color: #9acfda;
+		background-color: #84bac5;
 	}
 
 	&:active {
