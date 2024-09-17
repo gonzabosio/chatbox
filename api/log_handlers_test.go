@@ -24,7 +24,7 @@ func TestSignUp(t *testing.T) {
 		Name:     "StoredUser",
 		Password: "54321",
 	}
-	handler.service.DB.Collection("users").InsertOne(context.TODO(), stored)
+	app.client.Database("chat_box").Collection("users").InsertOne(context.TODO(), stored)
 	t.Run("Assert equal if user already exists", func(t *testing.T) {
 		body := &models.User{
 			Name:     "StoredUser",
@@ -112,5 +112,5 @@ func TestSignIn(t *testing.T) {
 		}
 		require.Equal(t, "User logged successfully", respBody["message"])
 	})
-	handler.service.DB.Collection("users").Drop(context.TODO())
+	app.client.Database("chat_box").Collection("users").Drop(context.TODO())
 }

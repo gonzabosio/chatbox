@@ -16,12 +16,13 @@ type ChatRepository interface {
 	LoadChats(userId string) ([]models.Chat, error)
 	AddChat(contact *models.Contact) (*models.Chat, error)
 	DeleteChat(chatId string) error
-	SendMessages(msgReq *models.Message) (*models.Message, error)
+	SendMessage(msgReq *models.Message) (*models.Message, error)
 	LoadMessages(chatId string) ([]models.Message, error)
 	EditMessage(msgId, newMsg string) (*models.Message, error)
 	DeleteMessage(msgId string) error
 }
 
+// var _ ChatRepository = (*mock.MockDBService)(nil)
 // mongodb instance in user_repo.go
 func (ms *MongoDBService) LoadChats(userId string) (chats []models.Chat, err error) {
 	coll := ms.DB.Collection("chats")
@@ -118,7 +119,7 @@ func (ms *MongoDBService) LoadMessages(chatId string) ([]models.Message, error) 
 	return mesagges, nil
 }
 
-func (ms *MongoDBService) SendMessages(msgReq *models.Message) (*models.Message, error) {
+func (ms *MongoDBService) SendMessage(msgReq *models.Message) (*models.Message, error) {
 	msgReq.SentAt = time.Now()
 	coll := ms.DB.Collection("messages")
 	res, err := coll.InsertOne(context.TODO(), msgReq)

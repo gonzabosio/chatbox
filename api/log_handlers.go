@@ -16,7 +16,7 @@ import (
 )
 
 type handler struct {
-	service    *repository.MongoDBService
+	service    repository.Service
 	tokenMaker *token.JWTMaker
 }
 

@@ -11,6 +11,7 @@ const props = defineProps({
 
 const messages = ref([])
 const message = ref('')
+let inMessages = 0
 let msgSenderSocket
 let msgEditorSocket
 let msgDeleteSocket
@@ -29,11 +30,12 @@ onMounted(async () => {
     }
     msgSenderSocket.onmessage = (event) => {
         message.value = ''
+        const response = JSON.parse(event.data)
         if (messages.value === null) {
             messages.value = []
-            messages.value.push(JSON.parse(event.data))
+            messages.value.push(response.new_message)
         } else {
-            messages.value.push(JSON.parse(event.data))
+            messages.value.push(response.new_message)
         }
         scrollToBottom()
     }
@@ -46,10 +48,11 @@ onMounted(async () => {
         console.log('Websocket connection opened to edit messages')
     }
     msgEditorSocket.onerror = (err) => {
-        console.log('Websocket error: ' + err.value)
+        console.log('Websocket error: ' + err)
     }
     msgEditorSocket.onmessage = (event) => {
-        messages.value.splice(msgIndex, 1, JSON.parse(event.data))
+        const response = JSON.parse(event.data)
+        messages.value.splice(msgIndex, 1, response.new_message)
     }
     msgEditorSocket.onclose = () => {
         console.log('Websocket connection closed')
@@ -60,11 +63,10 @@ onMounted(async () => {
         console.log('Websocket connection opened to delete messages')
     }
     msgDeleteSocket.onerror = (err) => {
-        console.log('Websocket error: ' + err.value)
+        console.log('Websocket error: ' + err)
     }
-    msgDeleteSocket.onmessage = (event, index) => {
-        console.log(event.data)
-        messages.value.splice(index, 1)[0]
+    msgDeleteSocket.onmessage = () => {
+        messages.value.splice(inMessages, 1)
     }
     msgDeleteSocket.onclose = () => {
         console.log('Websocket connection closed')
@@ -79,7 +81,6 @@ const sendMsg = () => {
     if (message.value == '') {
         console.log('Empty message')
     } else {
-        console.log('Sending message...')
         const msg = {
             chat_id: props.chatId,
             sender_id: localStorage.getItem('user-id'),
@@ -108,8 +109,8 @@ const putMessage = (msgId, newMsg) => {
 }
 
 const deleteMsg = async (msgId, index) => {
-    await msgDeleteSocket.send(msgId, index)
-
+    inMessages = index
+    await msgDeleteSocket.send(msgId)
 }
 
 onUnmounted(() => {

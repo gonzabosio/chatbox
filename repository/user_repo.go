@@ -11,6 +11,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type Service interface {
+	UserRepository
+	ChatRepository
+	SessionsRepository
+}
+
 type MongoDBService struct {
 	DB *mongo.Database
 }
@@ -23,7 +29,6 @@ type UserRepository interface {
 }
 
 func (ms *MongoDBService) RegisterUser(user *models.User) (*mongo.InsertOneResult, error) {
-
 	filter := bson.D{{Key: "name", Value: user.Name}}
 	oneRes := ms.DB.Collection("users").FindOne(context.TODO(), filter)
 
