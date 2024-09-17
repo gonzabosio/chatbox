@@ -23,8 +23,6 @@ async function userLogin() {
 			}
 		}).then(res => {
 			console.log('Message: ' + res.data.message)
-			console.log('Status: ' + res.status)
-			console.log('StatusText: ' + res.statusText)
 			localStorage.setItem('user-id', res.data.user.id)
 			localStorage.setItem('access-token', res.data.access_token)
 			localStorage.setItem('session-id', res.data.session_id)

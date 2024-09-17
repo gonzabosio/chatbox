@@ -7,7 +7,6 @@ export const getUserInfo = async () => await axiosInstance({
     method: 'get',
     url: `/user/${localStorage.getItem('user-id')}`
 }).then(res => {
-    console.log('User data retrieved')
     return res.data.user_data
 }).catch(err => {
     console.log('Error retrieving user data: ' + err.response.data.message)
@@ -24,7 +23,6 @@ export const savePersonalData = (pEmail, pAge, pCountry) => axiosInstance({
         age: pAge
     }
 }).then(res => {
-    console.log(pAge, pCountry, pEmail)
     console.log('Personal data saved')
     return res.status
 }).catch(err => {
@@ -37,8 +35,6 @@ export const loadChats = () => axiosInstance({
     method: 'get',
     url: `/chat/${localStorage.getItem('user-id')}`
 }).then(res => {
-    console.log(res.data.chats)
-    console.log(res.data.message)
     return res.data.chats
 }).catch(err => {
     console.log(err.response.data.message)
@@ -55,7 +51,6 @@ export const addChat = (newChat, name) => axiosInstance({
         petitioner: name
     }
 }).then(async res => {
-    console.log(res.data.message)
     return res.data.chat
 }).catch(err => {
     console.log(err.response.data.message)
@@ -66,7 +61,6 @@ export const loadMessages = (chatId) => axiosInstance({
     method: 'get',
     url: `/chat/${chatId}/messages`
 }).then(res => {
-    console.log(res.data.messages)
     return res.data.messages
 }).catch(err => {
     console.log(err.response.data.message)
@@ -92,7 +86,6 @@ export const renewToken = () => {
         url: `${baseUrl}/token/renew/${localStorage.getItem("session-id")}`,
     }).then(res => {
         localStorage.setItem('access-token', res.data.access_token)
-        console.log(res.data.message)
         return res.data.access_token
     }).catch(err => {
         console.log(err.response.data.message)
@@ -112,7 +105,6 @@ export const logout = () => axios({
             method: 'delete',
             url: `${baseUrl}/logout/${localStorage.getItem('session-id')}`
         }).then(res => {
-            console.log(res.data.message)
             localStorage.clear()
             router.replace('/')
         }).catch(err => {

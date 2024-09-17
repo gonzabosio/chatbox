@@ -34,7 +34,6 @@ const handleAddClick = async () => {
     }
 }
 const sendNewChatList = (chat) => {
-    console.log(chat)
     emit('chatsUpdated', chat)
 }
 
