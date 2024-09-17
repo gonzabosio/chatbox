@@ -322,11 +322,14 @@ WEBSOCKET /ws/send-msg
 #### Response
 ```javascript
 {
-  "id": "66e65747c19386daf16f545e",
-  "chat_id": "66e5ab4cdff129912cd0e80b",
-  "sender_id": "66e4f71243d2b68b40ca71ac",
-  "content": "Hello",
-  "sent_at": "2024-09-15T03:40:55.063Z"
+  "message": "Message was sent successfully"
+  "new_message": {
+    "id": "66e65747c19386daf16f545e",
+    "chat_id": "66e5ab4cdff129912cd0e80b",
+    "sender_id": "66e4f71243d2b68b40ca71ac",
+    "content": "Hello",
+    "sent_at": "2024-09-15T03:40:55.063Z"
+  }
 }
 ```
 <hr>
@@ -348,11 +351,14 @@ WEBSOCKET /ws/edit-msg
 #### Response
 ```javascript
 {
-  "id": "66e65747c19386daf16f545e",
-  "chat_id": "66e5ab4cdff129912cd0e80b"
-  "sender_id": "66e4f71243d2b68b40ca71ac",
-  "content": "Bye",
-  "sent_at": "2024-09-15T03:40:55.063Z"
+  "message": "Message edited successfully"
+  "new_message": {
+    "id": "66e65747c19386daf16f545e",
+    "chat_id": "66e5ab4cdff129912cd0e80b"
+    "sender_id": "66e4f71243d2b68b40ca71ac",
+    "content": "Bye",
+    "sent_at": "2024-09-15T03:40:55.063Z"
+  }
 }
 ```
 <hr>
