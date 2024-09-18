@@ -199,7 +199,7 @@ POST /chat
 #### Request body
 ```javascript
 {
-  "username": "New Chat",
+  "username": "Jane Doe",
   "petitioner_id": "66e4f71243d2b68b40ca71ac",
   "petitioner": "John Doe"
 }
