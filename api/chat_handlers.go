@@ -13,7 +13,7 @@ func (h *handler) loadChats(w http.ResponseWriter, r *http.Request) {
 	userId := chi.URLParam(r, "user-id")
 	chats, err := h.service.LoadChats(userId)
 	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{
+		respondJSON(w, http.StatusBadRequest, map[string]string{
 			"message": "Could not load user chats",
 			"error":   err.Error(),
 		})
@@ -35,9 +35,16 @@ func (h *handler) addChat(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	if err := validate.Struct(contact); err != nil {
+		respondJSON(w, http.StatusBadRequest, map[string]string{
+			"message": "Bad request to add contact",
+			"error":   err.Error(),
+		})
+		return
+	}
 	newChat, err := h.service.AddChat(&contact)
 	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{"message": err.Error()})
+		respondJSON(w, http.StatusBadRequest, map[string]string{"message": err.Error()})
 		return
 	}
 	respondJSON(w, http.StatusOK, map[string]interface{}{
@@ -51,7 +58,7 @@ func (h *handler) deleteChat(w http.ResponseWriter, r *http.Request) {
 	chatId := chi.URLParam(r, "chat-id")
 	err := h.service.DeleteChat(chatId)
 	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{
+		respondJSON(w, http.StatusBadRequest, map[string]string{
 			"message": "Could not delete chat",
 			"error":   err.Error(),
 		})
@@ -64,7 +71,7 @@ func (h *handler) loadMessages(w http.ResponseWriter, r *http.Request) {
 	chatId := chi.URLParam(r, "chat-id")
 	messages, err := h.service.LoadMessages(chatId)
 	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{
+		respondJSON(w, http.StatusBadRequest, map[string]string{
 			"message": "Could not load messages",
 			"error":   err.Error(),
 		})

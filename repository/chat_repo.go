@@ -23,7 +23,7 @@ type ChatRepository interface {
 }
 
 // var _ ChatRepository = (*mock.MockDBService)(nil)
-// mongodb instance in user_repo.go
+
 func (ms *MongoDBService) LoadChats(userId string) (chats []models.Chat, err error) {
 	coll := ms.DB.Collection("chats")
 	filter := bson.M{
@@ -78,7 +78,6 @@ func (ms *MongoDBService) AddChat(contact *models.Contact) (*models.Chat, error)
 	if err != nil {
 		return nil, err
 	}
-	//response with chat document to show it in frontend
 	newChat := &models.Chat{}
 	coll.FindOne(context.TODO(), bson.D{{Key: "_id", Value: res.InsertedID}}).Decode(&newChat)
 	return newChat, nil

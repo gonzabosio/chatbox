@@ -11,16 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type Service interface {
-	UserRepository
-	ChatRepository
-	SessionsRepository
-}
-
-type MongoDBService struct {
-	DB *mongo.Database
-}
-
 type UserRepository interface {
 	RegisterUser(user *models.User) (*mongo.InsertOneResult, error)
 	LoginUser(user *models.User) (*models.User, error)

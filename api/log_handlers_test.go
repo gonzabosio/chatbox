@@ -59,6 +59,7 @@ func TestSignUp(t *testing.T) {
 		var respBody map[string]interface{}
 		err = json.Unmarshal(response.Body.Bytes(), &respBody)
 		if err != nil {
+			println(respBody["error"])
 			t.Fatal(err)
 		}
 		require.Equal(t, "User added successfully", respBody["message"])

@@ -55,7 +55,7 @@ func (a *App) routing(h *handler, wsh *ws.WSHandler) {
 	a.router = chi.NewRouter()
 	a.router.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{os.Getenv("FRONT_URL")},
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"},
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders: []string{"Link"},
 		MaxAge:         1800,
@@ -63,7 +63,7 @@ func (a *App) routing(h *handler, wsh *ws.WSHandler) {
 	//Public
 	a.router.Use(middleware.Logger)
 	a.router.Group(func(r chi.Router) {
-		r.Use(httprate.LimitByIP(10, 1*time.Minute))
+		r.Use(httprate.LimitByIP(50, 1*time.Minute))
 		r.Head("/health", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 		r.Post("/signup", h.signUp)
 		r.Post("/signin", h.signIn)

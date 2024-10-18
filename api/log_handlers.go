@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator/v10"
 	"github.com/gonzabosio/chat-box/models"
 	"github.com/gonzabosio/chat-box/repository"
 	"github.com/gonzabosio/chat-box/token"
@@ -23,13 +24,15 @@ type handler struct {
 func NewHandler(app *App, secretKey string) *handler {
 	key, err := base64.StdEncoding.DecodeString(secretKey)
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err.Error())
 	}
 	return &handler{
 		service:    &repository.MongoDBService{DB: app.client.Database("chat_box")},
 		tokenMaker: token.NewJWTMaker(string(key)),
 	}
 }
+
+var validate = validator.New(validator.WithRequiredStructEnabled())
 
 func (h *handler) signUp(w http.ResponseWriter, r *http.Request) {
 	var user models.User
@@ -40,7 +43,7 @@ func (h *handler) signUp(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	if err := checkLoginValues(user.Name, user.Password); err != nil {
+	if err := validate.Struct(user); err != nil {
 		respondJSON(w, http.StatusBadRequest, map[string]string{
 			"message": "Bad request to register user",
 			"error":   err.Error(),
@@ -89,7 +92,7 @@ func (h *handler) signUp(w http.ResponseWriter, r *http.Request) {
 		ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
 	})
 	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{
+		respondJSON(w, http.StatusBadRequest, map[string]string{
 			"message": "Could not create session",
 			"error":   err.Error(),
 		})
@@ -117,7 +120,7 @@ func (h *handler) signIn(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	if err := checkLoginValues(user.Name, user.Password); err != nil {
+	if err := validate.Struct(user); err != nil {
 		respondJSON(w, http.StatusBadRequest, map[string]string{
 			"message": "Bad request to login user",
 			"error":   err.Error(),
@@ -157,7 +160,7 @@ func (h *handler) signIn(w http.ResponseWriter, r *http.Request) {
 		ExpiresAt:    refreshClaims.RegisteredClaims.ExpiresAt.Time,
 	})
 	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{
+		respondJSON(w, http.StatusBadRequest, map[string]string{
 			"message": "Could not create session",
 			"error":   err.Error(),
 		})
@@ -184,7 +187,7 @@ func (h *handler) logout(w http.ResponseWriter, r *http.Request) {
 	}
 	err := h.service.DeleteSession(id)
 	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{
+		respondJSON(w, http.StatusBadRequest, map[string]string{
 			"message": "Could not delete session",
 			"error":   err.Error(),
 		})
@@ -213,7 +216,7 @@ func (h *handler) renewAccessToken(w http.ResponseWriter, r *http.Request) {
 	}
 	session, err := h.service.GetSessions(refreshClaims.RegisteredClaims.ID)
 	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{"message": err.Error()})
+		respondJSON(w, http.StatusBadRequest, map[string]string{"message": err.Error()})
 		return
 	}
 	if session.IsRevoked {
@@ -248,7 +251,7 @@ func (h *handler) revokeSession(w http.ResponseWriter, r *http.Request) {
 	err := h.service.RevokeSession(id)
 	if err != nil {
 		if id == "" {
-			respondJSON(w, http.StatusInternalServerError, map[string]string{"message": "Error revoking session"})
+			respondJSON(w, http.StatusBadRequest, map[string]string{"message": "Error revoking session"})
 			return
 		}
 	}
@@ -259,12 +262,12 @@ func (h *handler) getUserDataById(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	id, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{"message": "Could not convert id to ObjectId"})
+		respondJSON(w, http.StatusBadRequest, map[string]string{"message": "Could not convert id to ObjectId"})
 		return
 	}
 	dbUser := new(models.UserDataResponse)
 	if err := h.service.GetUserById(dbUser, id); err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{
+		respondJSON(w, http.StatusBadRequest, map[string]string{
 			"message": "Invalid or non-existent user id",
 			"error":   err.Error(),
 		})
@@ -284,13 +287,13 @@ func (h *handler) saveUserPersonalData(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	id, err := primitive.ObjectIDFromHex(idParam)
 	if err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{"message": "Could not convert id to ObjectId"})
+		respondJSON(w, http.StatusBadRequest, map[string]string{"message": "Could not convert id to ObjectId"})
 		return
 	}
 	personal := new(models.Personal)
 	json.NewDecoder(r.Body).Decode(personal)
 	if err := h.service.SaveUserPersonalDataDB(id, personal); err != nil {
-		respondJSON(w, http.StatusInternalServerError, map[string]string{
+		respondJSON(w, http.StatusBadRequest, map[string]string{
 			"message": "Could not save extra data of user",
 			"error":   err.Error(),
 		})

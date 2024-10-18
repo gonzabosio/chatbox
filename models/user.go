@@ -2,8 +2,8 @@ package models
 
 type User struct {
 	ID       string   `bson:"_id,omitempty" json:"id,omitempty"`
-	Name     string   `bson:"name" json:"name"`
-	Password string   `bson:"password" json:"password"`
+	Name     string   `bson:"name" json:"name" validate:"required,max=12"`
+	Password string   `bson:"password" json:"password" validate:"required,max=20"`
 	Personal Personal `bson:"personal" json:"personal"`
 }
 

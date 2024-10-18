@@ -9,9 +9,9 @@ type Chat struct {
 
 type Message struct {
 	ID       string    `bson:"_id,omitempty" json:"id,omitempty"`
-	ChatID   string    `bson:"chat_id" json:"chat_id"`
-	SenderID string    `bson:"sender_id" json:"sender_id"`
-	Content  string    `bson:"content" json:"content"`
+	ChatID   string    `bson:"chat_id" json:"chat_id" validate:"required"`
+	SenderID string    `bson:"sender_id" json:"sender_id" validate:"required"`
+	Content  string    `bson:"content" json:"content" validate:"required"`
 	SentAt   time.Time `bson:"sent_at" json:"sent_at,omitempty"`
 }
 
